@@ -1,0 +1,141 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run UserTokenApi",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"UserTokenApi/UserTokenApi.csproj"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "Run Node.js UserTokenApi",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"index.js"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/nodejs"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Performance Test - Node.js Script",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"performance-tester.js"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/nodejs"
+			},
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Performance Test - PowerShell",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"performance-test.ps1",
+				"-RequestCount",
+				"20"
+			],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Performance Test - Quick",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"performance-test.ps1",
+				"-RequestCount",
+				"5"
+			],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run C# Load Tester",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run",
+				"--project",
+				"dotnet_test/ApiLoadTester/ApiLoadTester.csproj"
+			],
+			"group": "test",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "Build C# Load Tester",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"dotnet_test/ApiLoadTester/ApiLoadTester.csproj"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "Build Rust UserTokenApi",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/rust/user-token-api"
+			},
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "Run Rust UserTokenApi",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"run"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/rust/user-token-api"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [
+				"$rustc"
+			]
+		}
+	]
+}

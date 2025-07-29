@@ -1,0 +1,43 @@
+### Node.js UserTokenApi Test Requests
+
+### Health check
+GET http://localhost:3000/health
+
+### Create database with 10000 users
+GET http://localhost:3000/api/auth/create-db
+
+### Test login with a valid user (user1@example.com with password "password1")
+POST http://localhost:3000/api/auth/get-user-token
+Content-Type: application/json
+
+{
+  "username": "user1@example.com",
+  "hashedPassword": "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"
+}
+
+### Test login with another valid user (user100@example.com with password "password100")
+POST http://localhost:3000/api/auth/get-user-token
+Content-Type: application/json
+
+{
+  "username": "user100@example.com",
+  "hashedPassword": "5a32fc9e26c70e23bbda3a86ab7b50ee6df44fcd1e0c28b2f6f44e79b4c5c213"
+}
+
+### Test login with invalid credentials
+POST http://localhost:3000/api/auth/get-user-token
+Content-Type: application/json
+
+{
+  "username": "invalid@example.com",
+  "hashedPassword": "invalidhash"
+}
+
+### Test login with missing data
+POST http://localhost:3000/api/auth/get-user-token
+Content-Type: application/json
+
+{
+  "username": "",
+  "hashedPassword": ""
+}

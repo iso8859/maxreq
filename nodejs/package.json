@@ -1,0 +1,27 @@
+{
+  "name": "user-token-api",
+  "version": "1.0.0",
+  "description": "Simple Node.js API for user authentication using SQLite database",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "authentication",
+    "sqlite",
+    "express",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "crypto": "^1.0.1",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}
