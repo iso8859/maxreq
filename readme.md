@@ -8,7 +8,7 @@ This repository contains eight identical user authentication APIs implemented in
 
 This test have been created for two main purposes:
 1. **Performance Benchmarking**: To compare the performance of different programming languages and frameworks in the context of simple API call and database interaction.
-We do not evaluate complex compute scenarios.
+**We do not evaluate complex compute scenarios**.
 2. **Code readability and maintainability**: To compare the code readability and maintainability across multiple languages.
 
 All have been build with AI Claude Sonnet 4, reveiwed and improved by human developers.
@@ -35,15 +35,25 @@ PHP 1227 req/s
 
 => Conclusion : Today if you need performance don't use interpreted code.
 
-Rust is compiled to native code, so it is the fastest.
-Go is also compiled to native code with efficient runtime and goroutines, expected to perform very well.
-C++ is also compiled to native code with minimal runtime overhead, expected to perform very well.
-Today we would not use C++ for web developement. I already spend a lot of time on some old project to get good HTTP performance, it's difficult and very verbose. I choose to use C# as a wrapper and call C++ from this wrapper, it's simpler and faster to write and to execute. Today Rust is the best choice for C++ wrapper.
-.NET Core is also compiled to native code, but it has more overhead than Rust.
-Java runs on the JVM with JIT compilation, providing good performance with runtime optimizations.
-Node.js, Python, and PHP are interpreted, they are slower but Python with FastAPI/Uvicorn shows good async performance.
+## 🔍 Performance Analysis
 
-Have a look at file result.txt for complete results and cpu.png for CPU load. First yellow part = .NET, middle par = node.js and last yellow part = Rust.
+### 🥇 Top Performers (Compiled Languages)
+- **Rust**: Compiled to native code with zero-cost abstractions - **fastest overall**
+- **Go**: Compiled to native code with efficient runtime and goroutines - **excellent balance of performance and simplicity**
+- **C#/.NET Core**: Compiled to native code with managed runtime - **strong enterprise performance**
+
+### 🥈 Mid-Tier Performance
+- **C++**: Native compilation with minimal overhead, but **not recommended for web development**
+  - *Note*: Difficult and verbose for poor HTTP performance. Better to use a C++ wrapper from Rust, Go or C#.
+  - *Today's choice*: Rust is the superior "new C++" for systems programming
+- **Java**: JVM with JIT compilation - **good performance through runtime optimizations**
+
+### 🥉 Interpreted/Dynamic Languages
+- **Node.js**: V8 JavaScript engine - **decent async performance**
+- **Python**: FastAPI/Uvicorn shows **good async capabilities** despite being interpreted
+- **PHP**: Traditional interpreted approach - **adequate for standard web apps**
+
+Have a look at file result.txt for complete results.
 
 ## 📡 API Endpoints
 
