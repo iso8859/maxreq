@@ -1,6 +1,6 @@
 # Multi Dev Language User Token API Comparison
 
-**Date Jully the 30th, 2025**
+**July the 30th, 2025**
 
 This repository contains eight identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across C# .NET Core, Node.js, Rust, PHP, Python, Java, C++, and Go implementations.
 
