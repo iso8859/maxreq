@@ -219,7 +219,7 @@ class Program
         // Check command line arguments for test size
         int totalRequests = 10000;
         int maxConcurrency = 16;
-        
+        string testFilter = "all";
         if (args.Length > 0 && int.TryParse(args[0], out int requestCount))
         {
             totalRequests = requestCount;
@@ -230,6 +230,11 @@ class Program
             maxConcurrency = concurrency;
         }
 
+        if (args.Length > 2)
+        {
+            testFilter = args[2].ToLower();
+        }
+
         Console.WriteLine($"Configuration: {totalRequests:N0} requests, {maxConcurrency} concurrent connections");
         Console.WriteLine();
 
@@ -237,18 +242,27 @@ class Program
         const string dotnetApiUrl = "http://localhost:5150/api/auth/get-user-token";
         const string nodeApiUrl = "http://localhost:3000/api/auth/get-user-token";
         const string rustApiUrl = "http://localhost:8080/api/auth/get-user-token";
+        const string phpApiUrl = "http://localhost:9000/api/auth/get-user-token";
 
-        // Test all three APIs
-        await TestApi(".NET API", dotnetApiUrl, totalRequests, maxConcurrency);
-        Console.WriteLine();
-        await TestApi("Node.js API", nodeApiUrl, totalRequests, maxConcurrency);
-        Console.WriteLine();
-        await TestApi("Rust API", rustApiUrl, totalRequests, maxConcurrency);
+        if (testFilter == "dotnet" || testFilter == "all")
+        {
+            await TestApi(".NET API", dotnetApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "node" || testFilter == "all")
+        {
+            await TestApi("Node.js API", nodeApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "rust" || testFilter == "all")
+        {
+            await TestApi("Rust API", rustApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "php" || testFilter == "all")
+        {
+            await TestApi("PHP API", phpApiUrl, totalRequests, maxConcurrency);
+        }
 
         Console.WriteLine();
         Console.WriteLine("✅ Load testing completed!");
-        Console.WriteLine("Press any key to exit...");
-        Console.ReadKey();
     }
 
     static async Task TestApi(string apiName, string apiUrl, int totalRequests, int maxConcurrency)

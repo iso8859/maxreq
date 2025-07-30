@@ -89,3 +89,31 @@ Configuration: 100 000 requests, 16 concurrent connections
 
 
 ✅ Load testing completed!
+
+🎯 Testing PHP API
+-------------------------------
+🚀 Starting load test...
+   Target API: http://localhost:9000/api/auth/get-user-token
+   Total Requests: 100 000
+   Max Concurrency: 16
+   Connection Pool Size: 16
+
+✅ PHP API test completed!
+
+🎯 Load Test Results
+===================================================
+
+📊 Overview:
+   Total Duration: 81,47 seconds
+   Total Requests: 100 000
+   Successful: 0 (0,0%)
+   Failed: 100 000 (100,0%)
+
+⚡ Performance Metrics:
+   Requests/Second: 1227,4
+   Mean Response Time: 0,0 ms
+   Min Response Time: 0,0 ms
+   Max Response Time: 0,0 ms
+
+
+✅ Load testing completed!

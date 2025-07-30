@@ -1,6 +1,6 @@
 # Multi-Language User Token API Comparison
 
-This repository contains three identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, and Rust implementations.
+This repository contains four identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, and PHP implementations.
 
 ## 📊 Performance Benchmarks
 
@@ -11,53 +11,20 @@ On an AMD Ryzen 7 2700X, 8 core, 16 logical threads - Windows 10 machine.
 Rust 17887 req/s
 .NET Core 7417 req/s
 Node.js 2076 req/s
+PHP 1227 req/s
 ```
 
 => Conclusion : Today if you need performance don't use interpreted code.
 
 Rust is compiled to native code, so it is the fastest.
 .NET Core is also compiled to native code, but it has more overhead than Rust.
-Node.js is interpreted, so it is the slowest.
+Node.js and PHP are interpreted, they are both slower.
 
 Have a look at file result.txt for complete results and cpu.png for CPU load. First yellow part = .NET, middle par = node.js and last yellow part = Rust.
 
-## 🏗️ Project Structure
-
-```
-├── dotnet/UserTokenApi/           # ASP.NET Core Web API (.NET 9.0)
-├── nodejs/                       # Express.js API (Node.js)
-├── rust/user-token-api/          # Axum-based API (Rust)
-├── dotnet_test/ApiLoadTester/    # C# Performance Testing Tool
-├── performance-test.ps1          # PowerShell Load Testing Script
-└── .vscode/tasks.json            # VS Code Task Definitions
-```
-
-## 🚀 API Implementations
-
-### .NET Core API (Port 5150)
-- **Framework**: ASP.NET Core 9.0
-- **Database**: Raw SQLite with Microsoft.Data.Sqlite
-- **Features**: Entity Framework deliberately avoided for performance
-- **Authentication**: SHA256 password hashing
-- **Location**: `dotnet/UserTokenApi/`
-
-### Node.js API (Port 3000)
-- **Framework**: Express.js
-- **Database**: SQLite3 with connection pooling
-- **Features**: Async/await patterns, built-in crypto module
-- **Authentication**: SHA256 password hashing
-- **Location**: `nodejs/`
-
-### Rust API (Port 8080)
-- **Framework**: Axum with Tokio runtime
-- **Database**: rusqlite with Arc<Mutex<Connection>>
-- **Features**: Zero-cost abstractions, memory safety
-- **Authentication**: SHA256 password hashing (sha2 crate)
-- **Location**: `rust/user-token-api/`
-
 ## 📡 API Endpoints
 
-All three implementations expose identical REST endpoints:
+All four implementations expose identical REST endpoints:
 
 ### Health Check
 ```http
@@ -117,11 +84,19 @@ cargo run
 # Runs on http://localhost:8080
 ```
 
+#### PHP API
+```bash
+cd php
+php -S localhost:9000 index.php
+# Runs on http://localhost:9000
+```
+
 ### VS Code Tasks
 Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run UserTokenApi** - Start .NET API
 - **Run Node.js UserTokenApi** - Start Node.js API  
 - **Run Rust UserTokenApi** - Start Rust API
+- **Run PHP UserTokenApi** - Start PHP API
 - **Run C# Load Tester** - Execute performance tests
 - **Build Rust UserTokenApi** - Compile Rust project
 
@@ -141,7 +116,7 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
 ```
 
 **Features:**
-- Tests all three APIs automatically
+- Tests all four APIs automatically
 - Connection pooling optimization
 - Detailed percentile analysis (50th, 95th, 99th)
 - Request/response validation
@@ -159,6 +134,9 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
    
    # Terminal 3 - Rust
    cd rust/user-token-api && cargo run
+   
+   # Terminal 4 - PHP
+   cd php && php -S localhost:9000 index.php
    ```
 
 ## 📝 License

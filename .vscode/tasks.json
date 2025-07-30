@@ -136,6 +136,22 @@
 			"problemMatcher": [
 				"$rustc"
 			]
+		},
+		{
+			"label": "Run PHP UserTokenApi",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"-S",
+				"localhost:9000",
+				"index.php"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/php"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
 		}
 	]
 }
