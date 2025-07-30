@@ -2,22 +2,14 @@ import aiosqlite
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
+from contextlib import asynccontextmanager
 import hashlib
 
-app = FastAPI()
 DB_PATH = "users.db"
 
-class LoginRequest(BaseModel):
-    Username: str
-    HashedPassword: str
-
-class LoginResponse(BaseModel):
-    success: bool
-    userId: Optional[int] = None
-    errorMessage: Optional[str] = None
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
             CREATE TABLE IF NOT EXISTS user (
@@ -27,6 +19,19 @@ async def startup():
             )
         """)
         await db.commit()
+    yield
+    # Shutdown (if needed)
+
+app = FastAPI(lifespan=lifespan)
+
+class LoginRequest(BaseModel):
+    Username: str
+    HashedPassword: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    userId: Optional[int] = None
+    errorMessage: Optional[str] = None
 
 @app.get("/health")
 async def health():
@@ -50,7 +55,6 @@ async def setup_database(count: int):
         await db.commit()
         
         stmt = "INSERT INTO user (mail, hashed_password) VALUES (?, ?)"
-        hashed_password = "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"  # password123
         
         # Insert in batches for better performance
         batch_size = 1000
@@ -59,7 +63,11 @@ async def setup_database(count: int):
             
             async with db.execute("BEGIN TRANSACTION"):
                 for i in range(batch_start, batch_end + 1):
-                    await db.execute(stmt, (f"user{i}@example.com", hashed_password))
+                    email = f"user{i}@example.com"
+                    password = f"password{i}"
+                    # Generate SHA-256 hash for each password
+                    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+                    await db.execute(stmt, (email, hashed_password))
                 await db.execute("COMMIT")
                 
     return f"Successfully created {count} users in the database"

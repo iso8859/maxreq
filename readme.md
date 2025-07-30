@@ -26,8 +26,8 @@ Go 12049 req/s
 C# 7417 req/s
 C++ 5652 req/s (see remarks below)
 Java 4526 req/s
+Python 2112 req/s
 Node.js 2076 req/s
-Python 1935 req/s
 PHP 1227 req/s
 ```
 
