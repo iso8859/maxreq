@@ -1,69 +1,48 @@
-Multi-Language API Server Performance Comparison – The Business Impact
+Multi-Language API Server Performance Comparison.
 
-The performance gap between the fastest (Rust) and the slowest (PHP) is 14.6x.
 
-This is a comparison of API servers, not general web development.
+Context : compare API server performance for simple database requests.
 
-Real-world implications:
+I'm talking about web development, only API.
 
-    One Rust server can handle the same throughput as 14.6 PHP servers.
 
-    Cloud costs scale proportionally with server count.
+Using AI, I created 8 identical API projects along with a benchmark client to evaluate the request-handling capacity of each server. The test scenario benchmarks a POST request with JSON payload and JSON response, simulating a small identification payload. Each request triggers a SQLite query to retrieve the corresponding data.
 
-    Carbon footprint is directly linked to computational efficiency.
 
-Key Takeaways:
+The server specs are: AMD Ryzen 7 2700X (8 cores, 16 threads) running Windows 10.
 
-    Compiled languages lead in high-performance API scenarios.
 
-    Go stands out as a balanced choice, offering near-Rust performance with simpler syntax.
+Results for 100,000 requests with 16 concurrent connections:
 
-    C# maintains a simple codebase with strong performance; Blazor supports full stack development entirely in C# (no JavaScript).
+  Rust: 17,887 req/s – Zero-cost abstractions deliver maximum speed
 
-    AI tools now make language migrations more feasible—build in your preferred language, then convert to a more efficient technology.
+  Go: 12,049 req/s – Excellent balance of performance and simplicity
 
-    Technology choices have significant environmental and cost implications.
+  C#/.NET: 7,417 req/s – Strong enterprise-grade performance
 
-Choosing the right technology stack today affects not just developer productivity, but also cost and environmental responsibility.
+  C++: 5,652 req/s – Fast but not recommended for web APIs
 
-Full benchmark code and results available: https://github.com/iso8859/maxreq
+  Java: 4,527 req/s – JVM optimization pays off
 
-With rising cloud costs and increasing focus on sustainability, it’s important to understand the real performance impact of programming languages on API development.
+  Python: 2,112 req/s – FastAPI surprises with strong async capabilities
 
-The Experiment
-Using AI (Claude Sonnet 4), I built eight identical authentication APIs in different languages, each with:
+  Node.js: 2,076 req/s – V8 engine delivers decent async performance
 
-    Database interactions (SQLite)
+  PHP: 1,227 req/s – Traditional, adequate for standard web apps
 
-    JSON request/response handling
 
-    Comprehensive error handling
+This shows a performance disparity of up to 14.5x depending on the technology choice.
 
-Test Environment: AMD Ryzen 7 2700X (8 cores, 16 threads), Windows 10
-Methodology: 100,000 requests, 16 concurrent connections
+Production costs will be significantly higher due to lower throughput. 
 
-The Results (Requests per Second):
+Is it justifiable to choose technologies that consume more resources for the same functionality? 
 
-Compiled Languages (Native Performance)
+Consider the reduction in server count possible with higher-performance alternatives.
 
-    Rust: 17,887 req/s – Zero-cost abstractions deliver maximum speed
 
-    Go: 12,049 req/s – Excellent balance of performance and simplicity
+With today’s AI tools, migrating functionality between technologies is becoming easier.
 
-    C#/.NET: 7,417 req/s – Strong enterprise-grade performance
 
-Compiled/JIT Languages
+The github repo to evaluate the code.
 
-    C++: 5,652 req/s – Fast but not recommended for web APIs
-
-    Java: 4,527 req/s – JVM optimization pays off
-
-Interpreted/Dynamic Languages
-
-    Python: 2,112 req/s – FastAPI surprises with strong async capabilities
-
-    Node.js: 2,076 req/s – V8 engine delivers decent async performance
-
-    PHP: 1,227 req/s – Traditional, adequate for standard web apps
-
-AI tools are making it easier to move between technologies, helping teams achieve better performance and cost savings.
+https://github.com/iso8859/maxreq
