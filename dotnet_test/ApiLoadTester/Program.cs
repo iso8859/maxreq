@@ -243,6 +243,7 @@ class Program
         const string nodeApiUrl = "http://localhost:3000/api/auth/get-user-token";
         const string rustApiUrl = "http://localhost:8080/api/auth/get-user-token";
         const string phpApiUrl = "http://localhost:9000/api/auth/get-user-token";
+        const string pythonApiUrl = "http://localhost:7000/api/auth/get-user-token";
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
@@ -259,6 +260,10 @@ class Program
         if (testFilter == "php" || testFilter == "all")
         {
             await TestApi("PHP API", phpApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "python" || testFilter == "all")
+        {
+            await TestApi("Python API", pythonApiUrl, totalRequests, maxConcurrency);
         }
 
         Console.WriteLine();
