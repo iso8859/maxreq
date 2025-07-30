@@ -1,6 +1,6 @@
 # Multi-Language User Token API Comparison
 
-This repository contains four identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, and PHP implementations.
+This repository contains five identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, PHP, and Python implementations.
 
 ## 📊 Performance Benchmarks
 
@@ -11,6 +11,7 @@ On an AMD Ryzen 7 2700X, 8 core, 16 logical threads - Windows 10 machine.
 Rust 17887 req/s
 .NET Core 7417 req/s
 Node.js 2076 req/s
+Python 1935 req/s
 PHP 1227 req/s
 ```
 
@@ -18,13 +19,13 @@ PHP 1227 req/s
 
 Rust is compiled to native code, so it is the fastest.
 .NET Core is also compiled to native code, but it has more overhead than Rust.
-Node.js and PHP are interpreted, they are both slower.
+Node.js, Python, and PHP are interpreted, they are slower but Python with FastAPI/Uvicorn shows good async performance.
 
 Have a look at file result.txt for complete results and cpu.png for CPU load. First yellow part = .NET, middle par = node.js and last yellow part = Rust.
 
 ## 📡 API Endpoints
 
-All four implementations expose identical REST endpoints:
+All five implementations expose identical REST endpoints:
 
 ### Health Check
 ```http
@@ -91,12 +92,21 @@ php -S localhost:9000 index.php
 # Runs on http://localhost:9000
 ```
 
+#### Python API
+```bash
+cd python
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 7000 --workers 16 
+# Runs on http://localhost:7000
+```
+
 ### VS Code Tasks
 Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run UserTokenApi** - Start .NET API
 - **Run Node.js UserTokenApi** - Start Node.js API  
 - **Run Rust UserTokenApi** - Start Rust API
 - **Run PHP UserTokenApi** - Start PHP API
+- **Run Python UserTokenApi** - Start Python API
 - **Run C# Load Tester** - Execute performance tests
 - **Build Rust UserTokenApi** - Compile Rust project
 
@@ -116,7 +126,7 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
 ```
 
 **Features:**
-- Tests all four APIs automatically
+- Tests all five APIs automatically
 - Connection pooling optimization
 - Detailed percentile analysis (50th, 95th, 99th)
 - Request/response validation
@@ -137,6 +147,9 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
    
    # Terminal 4 - PHP
    cd php && php -S localhost:9000 index.php
+   
+   # Terminal 5 - Python
+   cd python && pip install -r requirements.txt && uvicorn main:app --port 7000 --workers 16
    ```
 
 ## 📝 License
