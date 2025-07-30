@@ -152,6 +152,38 @@
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": []
+		},
+		{
+			"label": "Run Python UserTokenApi",
+			"type": "shell",
+			"command": "uvicorn",
+			"args": [
+				"main:app",
+				"--host",
+				"0.0.0.0",
+				"--port",
+				"7000"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/python"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Java UserTokenApi",
+			"type": "shell",
+			"command": "mvn",
+			"args": [
+				"spring-boot:run"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/java"
+			},
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
 		}
 	]
 }

@@ -244,6 +244,7 @@ class Program
         const string rustApiUrl = "http://localhost:8080/api/auth/get-user-token";
         const string phpApiUrl = "http://localhost:9000/api/auth/get-user-token";
         const string pythonApiUrl = "http://localhost:7000/api/auth/get-user-token";
+        const string javaApiUrl = "http://localhost:6000/api/auth/get-user-token";
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
@@ -264,6 +265,10 @@ class Program
         if (testFilter == "python" || testFilter == "all")
         {
             await TestApi("Python API", pythonApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "java" || testFilter == "all")
+        {
+            await TestApi("Java API", javaApiUrl, totalRequests, maxConcurrency);
         }
 
         Console.WriteLine();
