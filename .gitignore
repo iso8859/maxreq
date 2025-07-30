@@ -1,6 +1,10 @@
 # Multi-Language API Project .gitignore
 # Covers .NET, Node.js, Rust, and common development files
 
+# CPP
+cpp/vcpkg_installed/**
+cpp/cpp.vcxproj.user
+
 #################
 # .NET / C#
 #################
@@ -688,3 +692,4 @@ appsettings.*.json
 *.bak
 *.backup
 *.old
+
