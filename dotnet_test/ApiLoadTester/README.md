@@ -43,6 +43,7 @@ const int connectionPoolSize = 16;   // HTTP connection pool size
 - **Python API**: `http://localhost:7000/api/auth/get-user-token`
 - **Java API**: `http://localhost:6000/api/auth/get-user-token`
 - **C++ API**: `http://localhost:8081/api/auth/get-user-token`
+- **Go API**: `http://localhost:8082/api/auth/get-user-token`
 
 ## Usage
 
@@ -68,6 +69,7 @@ Before running the load test, ensure all APIs are running:
 - Python API: `uvicorn main:app --host 0.0.0.0 --port 7000 --workers 16 --app-dir ../python`
 - Java API: `mvn spring-boot:run --file ../java/pom.xml`
 - C++ API: Build and run the C++ application on port 8081
+- Go API: `go run main.go --app-dir ../go`
 
 ## Sample Output
 

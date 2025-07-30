@@ -1,6 +1,19 @@
-# Multi-Language User Token API Comparison
+# Multi Dev Language User Token API Comparison
 
-This repository contains seven identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, PHP, Python, Java, and C++ implementations.
+**Date Jully the 30th, 2025**
+
+This repository contains eight identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across C# .NET Core, Node.js, Rust, PHP, Python, Java, C++, and Go implementations.
+
+# Context
+
+This test have been created for two main purposes:
+1. **Performance Benchmarking**: To compare the performance of different programming languages and frameworks in the context of simple API call and database interaction.
+We do not evaluate complex compute scenarios.
+2. **Code readability and maintainability**: To compare the code readability and maintainability across multiple languages.
+
+All have been build with AI Claude Sonnet 4, reveiwed and improved by human developers.
+Note : Claude Sonnet 4 didn't succeed to build the C++ API, I had to fix it manually.
+Note 2 : Today choosing C++ for web development is not a good idea. I did it to compare with Rust, which is the "new" C++.
 
 ## 📊 Performance Benchmarks
 
@@ -9,7 +22,8 @@ On an AMD Ryzen 7 2700X, 8 core, 16 logical threads - Windows 10 machine.
 
 ```
 Rust 17887 req/s
-.NET Core 7417 req/s
+Go 12049 req/s
+C# 7417 req/s
 C++ 5652 req/s (see remarks below)
 Java 4526 req/s
 Node.js 2076 req/s
@@ -17,9 +31,12 @@ Python 1935 req/s
 PHP 1227 req/s
 ```
 
+![Performance Comparison Chart](illustration.png)
+
 => Conclusion : Today if you need performance don't use interpreted code.
 
 Rust is compiled to native code, so it is the fastest.
+Go is also compiled to native code with efficient runtime and goroutines, expected to perform very well.
 C++ is also compiled to native code with minimal runtime overhead, expected to perform very well.
 Today we would not use C++ for web developement. I already spend a lot of time on some old project to get good HTTP performance, it's difficult and very verbose. I choose to use C# as a wrapper and call C++ from this wrapper, it's simpler and faster to write and to execute. Today Rust is the best choice for C++ wrapper.
 .NET Core is also compiled to native code, but it has more overhead than Rust.
@@ -30,7 +47,7 @@ Have a look at file result.txt for complete results and cpu.png for CPU load. Fi
 
 ## 📡 API Endpoints
 
-All seven implementations expose identical REST endpoints:
+All eight implementations expose identical REST endpoints:
 
 ### Health Check
 ```http
@@ -121,6 +138,14 @@ vcpkg install
 # Runs on http://localhost:8081
 ```
 
+#### Go API
+```bash
+cd go
+go mod tidy
+go run main.go
+# Runs on http://localhost:8082
+```
+
 ### VS Code Tasks
 Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run UserTokenApi** - Start .NET API
@@ -130,6 +155,7 @@ Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run Python UserTokenApi** - Start Python API
 - **Run Java UserTokenApi** - Start Java API
 - **Run C++ UserTokenApi** - Start C++ API
+- **Run Go UserTokenApi** - Start Go API
 - **Run C# Load Tester** - Execute performance tests
 - **Build Rust UserTokenApi** - Compile Rust project
 
@@ -149,7 +175,7 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
 ```
 
 **Features:**
-- Tests all seven APIs automatically
+- Tests all eight APIs automatically
 - Connection pooling optimization
 - Detailed percentile analysis (50th, 95th, 99th)
 - Request/response validation
@@ -179,6 +205,9 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
    
    # Terminal 7 - C++
    cd cpp && vcpkg install && ./cpp
+   
+   # Terminal 8 - Go
+   cd go && go mod tidy && go run main.go
    ```
 
 ## 📝 License

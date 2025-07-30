@@ -246,6 +246,7 @@ class Program
         const string pythonApiUrl = "http://localhost:7000/api/auth/get-user-token";
         const string javaApiUrl = "http://localhost:6000/api/auth/get-user-token";
         const string cppApiUrl = "http://localhost:8081/api/auth/get-user-token";
+        const string goApiUrl = "http://localhost:8082/api/auth/get-user-token";
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
@@ -274,6 +275,10 @@ class Program
         if (testFilter == "cpp" || testFilter == "all")
         {
             await TestApi("C++ API", cppApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "go" || testFilter == "all")
+        {
+            await TestApi("Go API", goApiUrl, totalRequests, maxConcurrency);
         }
 
         Console.WriteLine();
