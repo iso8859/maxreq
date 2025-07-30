@@ -1,6 +1,6 @@
 # Multi-Language User Token API Comparison
 
-This repository contains six identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, PHP, Python, and Java implementations.
+This repository contains seven identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across .NET Core, Node.js, Rust, PHP, Python, Java, and C++ implementations.
 
 ## 📊 Performance Benchmarks
 
@@ -10,6 +10,7 @@ On an AMD Ryzen 7 2700X, 8 core, 16 logical threads - Windows 10 machine.
 ```
 Rust 17887 req/s
 .NET Core 7417 req/s
+C++ 5652 req/s (see remarks below)
 Java 4526 req/s
 Node.js 2076 req/s
 Python 1935 req/s
@@ -19,6 +20,8 @@ PHP 1227 req/s
 => Conclusion : Today if you need performance don't use interpreted code.
 
 Rust is compiled to native code, so it is the fastest.
+C++ is also compiled to native code with minimal runtime overhead, expected to perform very well.
+Today we would not use C++ for web developement. I already spend a lot of time on some old project to get good HTTP performance, it's difficult and very verbose. I choose to use C# as a wrapper and call C++ from this wrapper, it's simpler and faster to write and to execute. Today Rust is the best choice for C++ wrapper.
 .NET Core is also compiled to native code, but it has more overhead than Rust.
 Java runs on the JVM with JIT compilation, providing good performance with runtime optimizations.
 Node.js, Python, and PHP are interpreted, they are slower but Python with FastAPI/Uvicorn shows good async performance.
@@ -27,7 +30,7 @@ Have a look at file result.txt for complete results and cpu.png for CPU load. Fi
 
 ## 📡 API Endpoints
 
-All six implementations expose identical REST endpoints:
+All seven implementations expose identical REST endpoints:
 
 ### Health Check
 ```http
@@ -109,6 +112,15 @@ mvn spring-boot:run
 # Runs on http://localhost:6000
 ```
 
+#### C++ API
+```bash
+cd cpp
+vcpkg install
+# Build with your preferred method (Visual Studio, CMake, etc.)
+./cpp  # or cpp.exe on Windows
+# Runs on http://localhost:8081
+```
+
 ### VS Code Tasks
 Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run UserTokenApi** - Start .NET API
@@ -117,6 +129,7 @@ Use `Ctrl+Shift+P` → "Tasks: Run Task" and select:
 - **Run PHP UserTokenApi** - Start PHP API
 - **Run Python UserTokenApi** - Start Python API
 - **Run Java UserTokenApi** - Start Java API
+- **Run C++ UserTokenApi** - Start C++ API
 - **Run C# Load Tester** - Execute performance tests
 - **Build Rust UserTokenApi** - Compile Rust project
 
@@ -136,7 +149,7 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
 ```
 
 **Features:**
-- Tests all six APIs automatically
+- Tests all seven APIs automatically
 - Connection pooling optimization
 - Detailed percentile analysis (50th, 95th, 99th)
 - Request/response validation
@@ -163,6 +176,9 @@ dotnet run 50000 32          # 50,000 requests, 32 concurrent
    
    # Terminal 6 - Java
    cd java && mvn spring-boot:run
+   
+   # Terminal 7 - C++
+   cd cpp && vcpkg install && ./cpp
    ```
 
 ## 📝 License

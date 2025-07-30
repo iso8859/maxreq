@@ -38,6 +38,11 @@ const int connectionPoolSize = 16;   // HTTP connection pool size
 
 - **.NET API**: `http://localhost:5150/api/auth/get-user-token`
 - **Node.js API**: `http://localhost:3000/api/auth/get-user-token`
+- **Rust API**: `http://localhost:8080/api/auth/get-user-token`
+- **PHP API**: `http://localhost:9000/api/auth/get-user-token`
+- **Python API**: `http://localhost:7000/api/auth/get-user-token`
+- **Java API**: `http://localhost:6000/api/auth/get-user-token`
+- **C++ API**: `http://localhost:8081/api/auth/get-user-token`
 
 ## Usage
 
@@ -55,9 +60,14 @@ Use the VS Code Command Palette:
 - Select "Run C# Load Tester"
 
 ### 3. Make sure APIs are running
-Before running the load test, ensure both APIs are running:
+Before running the load test, ensure all APIs are running:
 - .NET API: `dotnet run --project ../dotnet/UserTokenApi/UserTokenApi.csproj`
 - Node.js API: `node ../nodejs/index.js`
+- Rust API: `cargo run --manifest-path ../rust/user-token-api/Cargo.toml`
+- PHP API: `php -S localhost:9000 ../php/index.php`
+- Python API: `uvicorn main:app --host 0.0.0.0 --port 7000 --workers 16 --app-dir ../python`
+- Java API: `mvn spring-boot:run --file ../java/pom.xml`
+- C++ API: Build and run the C++ application on port 8081
 
 ## Sample Output
 

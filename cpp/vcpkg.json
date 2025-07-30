@@ -3,8 +3,9 @@
   "name": "cpp",
   "version": "1.0.0",
   "dependencies": [
-    "cpp-httplib",
-    "nlohmann-json",
-    "sqlite3"
+    "drogon",
+    "jsoncpp",
+    "sqlite3",
+    "openssl"
   ]
 }
