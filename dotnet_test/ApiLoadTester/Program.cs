@@ -240,10 +240,10 @@ class Program
 
         // Configuration
         const string dotnetApiUrl = "http://localhost:5150/api/auth/get-user-token";
-        const string nodeApiUrl = "http://localhost:3000/api/auth/get-user-token";
+        const string nodeApiUrl = "http://localhost:80/api/auth/get-user-token";
         const string rustApiUrl = "http://localhost:8080/api/auth/get-user-token";
-        const string phpApiUrl = "http://localhost:9000/api/auth/get-user-token";
-        const string pythonApiUrl = "http://localhost:7000/api/auth/get-user-token";
+        const string phpApiUrl = "http://localhost:80/api/auth/get-user-token";
+        const string pythonApiUrl = "http://localhost:80/api/auth/get-user-token";
         const string javaApiUrl = "http://localhost:6000/api/auth/get-user-token";
         const string cppApiUrl = "http://localhost:8081/api/auth/get-user-token";
         const string goApiUrl = "http://localhost:8082/api/auth/get-user-token";

@@ -103,11 +103,9 @@ dotnet run
 ```
 
 #### Node.js API
-```bash
-cd nodejs
-npm install
-node index.js
-# Runs on http://localhost:3000
+```
+view nodejs/readme.md
+Run 16 node instances with nginx load balancing
 ```
 
 #### Rust API
@@ -118,10 +116,10 @@ cargo run
 ```
 
 #### PHP API
-```bash
-cd php
-php -S localhost:9000 index.php
-# Runs on http://localhost:9000
+```
+View php/readme.md
+Run with PHP-CGI.EXE 16 workers with nginx 
+I tried hard to get better results but I think PHP is missing asynchronous processing.
 ```
 
 #### Python API
@@ -130,6 +128,7 @@ cd python
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 7000 --workers 16 
 # Runs on http://localhost:7000
+Tried with pm2 and nginx but was worse.
 ```
 
 #### Java API

@@ -49,6 +49,10 @@ switch (true) {
     case $path === '/health' && $requestMethod === 'GET':
         handleHealth();
         break;
+
+    case $path === '/api/auth/health' && $requestMethod === 'GET':
+        handleHealth();
+        break;
         
     case $path === '/api/auth/get-user-token' && $requestMethod === 'POST':
         handleAuth();
