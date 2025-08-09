@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
@@ -36,14 +40,50 @@ type DatabaseService struct {
 
 // NewDatabaseService creates a new database service
 func NewDatabaseService(dbPath string) (*DatabaseService, error) {
-	db, err := sql.Open("sqlite", dbPath)
+	readOnly := strings.EqualFold(os.Getenv("READ_ONLY_DB"), "true") || strings.EqualFold(os.Getenv("READ_ONLY"), "true")
+
+	// Build DSN. For modernc sqlite driver, use file: prefix to add query parameters.
+	dsn := dbPath
+	if !strings.HasPrefix(dbPath, "file:") {
+		dsn = "file:" + dbPath
+	}
+	if readOnly {
+		dsn += "?mode=ro" // open database in read-only mode
+	} else {
+		// Busy timeout + shared cache can help under load; pragmas applied after open.
+		if !strings.Contains(dsn, "?") {
+			dsn += "?"
+		} else {
+			dsn += "&"
+		}
+		dsn += "_busy_timeout=5000"
+	}
+
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open db (%s): %w", dsn, err)
+	}
+
+	// Apply performance pragmas only if writable
+	if !readOnly {
+		pragmas := []string{
+			"PRAGMA journal_mode=WAL;",
+			"PRAGMA synchronous=OFF;",
+			"PRAGMA temp_store=MEMORY;",
+			"PRAGMA mmap_size=134217728;", // 128MB
+		}
+		for _, p := range pragmas {
+			if _, perr := db.Exec(p); perr != nil {
+				log.Printf("warning: failed to apply pragma %s: %v", p, perr)
+			}
+		}
 	}
 
 	service := &DatabaseService{db: db}
-	if err := service.InitializeDatabase(); err != nil {
-		return nil, err
+	if !readOnly { // Only attempt to create schema when writable
+		if err := service.InitializeDatabase(); err != nil {
+			return nil, err
+		}
 	}
 
 	return service, nil
@@ -185,7 +225,20 @@ func (ac *AuthController) GetUserToken(c *gin.Context) {
 
 // CreateDatabase handles database creation
 func (ac *AuthController) CreateDatabase(c *gin.Context) {
-	count, err := ac.dbService.CreateTestUsers(10000)
+	// Prevent seeding if DB opened read-only
+	if strings.EqualFold(os.Getenv("READ_ONLY_DB"), "true") || strings.EqualFold(os.Getenv("READ_ONLY"), "true") {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Database opened in read-only mode"})
+		return
+	}
+
+	userCount := 10000
+	if v := os.Getenv("SEED_USER_COUNT"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			userCount = parsed
+		}
+	}
+	start := time.Now()
+	count, err := ac.dbService.CreateTestUsers(userCount)
 	if err != nil {
 		log.Printf("Error creating database: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -193,8 +246,8 @@ func (ac *AuthController) CreateDatabase(c *gin.Context) {
 		})
 		return
 	}
-
-	message := fmt.Sprintf("Successfully created %d users in the database", count)
+	dur := time.Since(start)
+	message := fmt.Sprintf("Successfully created %d users in %.2fms", count, float64(dur.Microseconds())/1000.0)
 	c.String(http.StatusOK, message)
 }
 
@@ -203,29 +256,46 @@ func HealthCheck(c *gin.Context) {
 	c.String(http.StatusOK, "UserTokenApi Go server is running")
 }
 
+// ReadyCheck returns 200 if a simple DB query works (or DB is opened read-only but accessible)
+func ReadyCheck(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var one int
+		// Lightweight query; if table not present (read-only pre-init) still succeed with 200 but note state
+		err := db.QueryRow("SELECT 1").Scan(&one)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"status": "degraded", "error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	}
+}
+
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8082"
+	}
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "users.db"
+	}
+
 	// Initialize database
-	dbService, err := NewDatabaseService("users.db")
+	dbService, err := NewDatabaseService(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer dbService.Close()
 
-	// Initialize controller
 	authController := NewAuthController(dbService)
 
-	// Set Gin to release mode for better performance
 	gin.SetMode(gin.ReleaseMode)
-
-	// Create Gin router
 	router := gin.New()
-	
-	// Add minimal middleware
 	router.Use(gin.Recovery())
 
-	// Setup routes
 	router.GET("/health", HealthCheck)
-	
+	router.GET("/ready", ReadyCheck(dbService.db))
+
 	api := router.Group("/api")
 	auth := api.Group("/auth")
 	{
@@ -233,13 +303,17 @@ func main() {
 		auth.GET("/create-db", authController.CreateDatabase)
 	}
 
-	// Start server
-	port := "8082"
-	fmt.Printf("Starting Go UserTokenApi server on http://localhost:%s\n", port)
+	readOnly := strings.EqualFold(os.Getenv("READ_ONLY_DB"), "true") || strings.EqualFold(os.Getenv("READ_ONLY"), "true")
+	seedInfo := "(writable)"
+	if readOnly {
+		seedInfo = "(read-only mode; seeding disabled)"
+	}
+	fmt.Printf("Starting Go UserTokenApi server on http://localhost:%s using DB '%s' %s\n", port, dbPath, seedInfo)
 	fmt.Println("Available endpoints:")
 	fmt.Println("  GET /health - Health check")
+	fmt.Println("  GET /ready  - Readiness (DB reachable)")
 	fmt.Println("  POST /api/auth/get-user-token - Authenticate user")
-	fmt.Println("  GET /api/auth/create-db - Create test database with 10,000 users")
+	fmt.Println("  GET /api/auth/create-db - Create/seed test database (disabled in read-only mode)")
 
 	log.Fatal(router.Run(":" + port))
 }

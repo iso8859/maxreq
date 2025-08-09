@@ -68,6 +68,10 @@ public class ApiLoadTester
         Console.WriteLine($"   Connection Pool Size: 16");
         Console.WriteLine();
 
+        string final = _apiUrl + "api/auth/create-db";
+        Console.WriteLine($"   Initializing database with: {final}");
+        await _httpClient.GetAsync(final);
+
         var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
         var tasks = new List<Task<(bool Success, double ResponseTimeMs)>>();
         var stopwatch = Stopwatch.StartNew();
@@ -114,7 +118,8 @@ public class ApiLoadTester
             var json = JsonSerializer.Serialize(_testData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
-            var response = await _httpClient.PostAsync(_apiUrl, content);
+            string final = _apiUrl + "api/auth/get-user-token";
+            var response = await _httpClient.PostAsync(final, content);
             var responseBody = await response.Content.ReadAsStringAsync();
             
             requestStopwatch.Stop();
@@ -239,18 +244,23 @@ class Program
         Console.WriteLine();
 
         // Configuration
-        const string dotnetApiUrl = "http://localhost:5150/api/auth/get-user-token";
-        const string nodeApiUrl = "http://localhost:80/api/auth/get-user-token";
-        const string rustApiUrl = "http://localhost:8080/api/auth/get-user-token";
-        const string phpApiUrl = "http://localhost:80/api/auth/get-user-token";
-        const string pythonApiUrl = "http://localhost:80/api/auth/get-user-token";
-        const string javaApiUrl = "http://localhost:6000/api/auth/get-user-token";
-        const string cppApiUrl = "http://localhost:8081/api/auth/get-user-token";
-        const string goApiUrl = "http://localhost:8082/api/auth/get-user-token";
+        const string dotnetApiUrl = "http://localhost:5150/";
+        const string dotnetMiniApiUrl = "http://localhost:5190/";
+        const string nodeApiUrl = "http://localhost:80/nodejs/";
+        const string rustApiUrl = "http://localhost:8080/";
+        const string phpApiUrl = "http://localhost:80/php/";
+        const string pythonApiUrl = "http://localhost:80/nodejs/";
+        const string javaApiUrl = "http://localhost:6000/";
+        const string cppApiUrl = "http://localhost:8081/";
+        const string goApiUrl = "http://localhost:8082/";
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
             await TestApi(".NET API", dotnetApiUrl, totalRequests, maxConcurrency);
+        }
+        if (testFilter == "dotnetmini" || testFilter == "all")
+        {
+            await TestApi(".NET API", dotnetMiniApiUrl, totalRequests, maxConcurrency);
         }
         if (testFilter == "node" || testFilter == "all")
         {

@@ -106,8 +106,8 @@ function createTestUsers(db, count = 10000) {
 
 // Routes
 
-// POST /api/auth/get-user-token - Authenticate user
-app.post('/api/auth/get-user-token', async (req, res) => {
+// POST /nodejs/api/auth/get-user-token - Authenticate user
+app.post('/nodejs/api/auth/get-user-token', async (req, res) => {
     try {
         const { username, hashedPassword } = req.body;
 
@@ -140,7 +140,7 @@ app.post('/api/auth/get-user-token', async (req, res) => {
 });
 
 // GET /api/auth/create-db - Create test database with 10000 users
-app.get('/api/auth/create-db', async (req, res) => {
+app.get('/nodejs/api/auth/create-db', async (req, res) => {
     try {
         const db = new sqlite3.Database(DB_PATH);
         const count = await createTestUsers(db, 10000);
@@ -155,7 +155,7 @@ app.get('/api/auth/create-db', async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/nodejshealth', (req, res) => {
     res.json({ status: 'OK', message: 'UserTokenApi Node.js server is running' });
 });
 
