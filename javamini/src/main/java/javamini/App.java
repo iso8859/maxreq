@@ -41,11 +41,6 @@ public class App {
             if (!readOnly) {
                 try (Connection c = DriverManager.getConnection(writeUrl)) {
                     try (Statement s = c.createStatement()) {
-                        s.execute("PRAGMA journal_mode=WAL;");
-                        s.execute("PRAGMA synchronous=OFF;");
-                        s.execute("PRAGMA temp_store=MEMORY;");
-                        s.execute("PRAGMA mmap_size=134217728;");
-                        s.execute("PRAGMA busy_timeout=5000;");
                         s.execute("CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, mail TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL)");
                     }
                 }
@@ -126,16 +121,7 @@ public class App {
         DatabaseService db = new DatabaseService(dbPath, readOnly);
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        server.createContext("/health", ex -> sendText(ex, 200, "UserTokenApi JavaMini server is running"));
-        server.createContext("/ready", ex -> {
-            try (Connection c = DriverManager.getConnection(readOnly ? db.readUrl : db.writeUrl);
-                 Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SELECT 1")) {
-                sendJson(ex, 200, Map.of("status", "ready"));
-            } catch (Exception e) {
-                sendJson(ex, 200, Map.of("status", "degraded", "error", e.getMessage()));
-            }
-        });
+        server.createContext("/api/auth/health", ex -> sendText(ex, 200, "UserTokenApi JavaMini server is running"));
         server.createContext("/api/auth/get-user-token", ex -> {
                 if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) { sendText(ex, 405, "Method Not Allowed"); return; }
                 ObjectMapper om = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -172,8 +158,7 @@ public class App {
 
         server.setExecutor(java.util.concurrent.Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()));
         System.out.println("Starting JavaMini server on http://localhost:" + port + " using DB '" + dbPath + "' " + (readOnly ? "(read-only; seeding disabled)" : "(writable)"));
-        System.out.println("  GET  /health");
-        System.out.println("  GET  /ready");
+        System.out.println("  GET  /api/auth/health");
         System.out.println("  POST /api/auth/get-user-token");
         System.out.println("  GET  /api/auth/create-db");
 

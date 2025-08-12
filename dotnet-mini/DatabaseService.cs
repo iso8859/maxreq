@@ -22,7 +22,7 @@ using System.Text;
 
 public class DatabaseService
 {
-    private readonly string _connectionString;
+    public readonly string _connectionString;
 
     public DatabaseService(IConfiguration configuration)
     {
