@@ -48,10 +48,10 @@ register_shutdown_function(function() use ($START_TIME, $TRACE_MEMORY){
     }
     if ($TRACE_MEMORY) {
         // log_line('DEBUG', 'Memory usage summary', [
-            'mem_current'=>memory_get_usage(),
-            'mem_peak'=>memory_get_peak_usage(),
-            'duration_ms'=>round((microtime(true)-$START_TIME)*1000,2)
-        ]);
+        //    'mem_current'=>memory_get_usage(),
+        //    'mem_peak'=>memory_get_peak_usage(),
+        //    'duration_ms'=>round((microtime(true)-$START_TIME)*1000,2)
+        // ]);
     }
 });
 
