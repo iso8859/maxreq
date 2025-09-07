@@ -11,8 +11,8 @@ namespace UserTokenApi.Services
 
         public DatabaseService(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Data Source=users.db";
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                                ?? "Data Source=users.db";
         }
 
         public async Task InitializeDatabaseAsync()
@@ -27,7 +27,7 @@ namespace UserTokenApi.Services
                     mail TEXT NOT NULL UNIQUE,
                     hashed_password TEXT NOT NULL
                 )";
-            
+
             await command.ExecuteNonQueryAsync();
         }
 
@@ -52,7 +52,7 @@ namespace UserTokenApi.Services
             catch { }
 
             return null;
-            }
+        }
 
         public async Task<int> CreateUsersAsync(int count = 10000)
         {
@@ -67,10 +67,10 @@ namespace UserTokenApi.Services
             await clearCommand.ExecuteNonQueryAsync();
 
             using var transaction = connection.BeginTransaction();
-            
+
             var command = connection.CreateCommand();
             command.CommandText = "INSERT INTO user (mail, hashed_password) VALUES (@mail, @hashedPassword)";
-            
+
             var mailParam = command.CreateParameter();
             mailParam.ParameterName = "@mail";
             command.Parameters.Add(mailParam);
@@ -101,13 +101,8 @@ namespace UserTokenApi.Services
         {
             using SHA256 sha256Hash = SHA256.Create();
             byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-            
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                builder.Append(bytes[i].ToString("x2"));
-            }
-            return builder.ToString();
+
+            return Convert.ToHexStringLower(bytes);
         }
     }
 }
