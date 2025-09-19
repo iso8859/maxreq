@@ -3,10 +3,10 @@ package com.example.usertokenapi.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LoginRequest {
-    @JsonProperty("Username")
+    @JsonProperty("username")
     private String username;
     
-    @JsonProperty("HashedPassword")
+    @JsonProperty("hashedPassword")
     private String hashedPassword;
 
     public LoginRequest() {}

@@ -350,7 +350,7 @@ curl -X POST http://localhost/api/auth/create-db
 # Test authentication
 curl -X POST http://localhost/api/auth/get-user-token \
   -H "Content-Type: application/json" \
-  -d '{"Username":"user1@example.com","HashedPassword":"ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"}'
+  -d '{"username":"user1@example.com","hashedPassword":"ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"}'
 ```
 
 ## 🔧 Performance Tuning

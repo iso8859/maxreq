@@ -1,13 +1,18 @@
 using UserTokenApi.Services;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddScoped<DatabaseService>();
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Make it more fair toward other more strict JSON deserializers (e.g. Rust's serde).
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+builder.Services.AddSingleton<DatabaseService>();
 
 var app = builder.Build();
 
@@ -18,13 +23,6 @@ using (var scope = app.Services.CreateScope())
     await databaseService.InitializeDatabaseAsync();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();

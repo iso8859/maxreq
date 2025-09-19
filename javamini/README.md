@@ -22,7 +22,7 @@ java -jar target/javamini-1.0.0-shaded.jar
 - GET /health
 - GET /ready
 - POST /api/auth/get-user-token
-  - body: { "Username": "user1@example.com", "HashedPassword": "<sha256>" }
+  - body: { "username": "user1@example.com", "hashedPassword": "<sha256>" }
 - GET /api/auth/create-db
 
 ## Notes
