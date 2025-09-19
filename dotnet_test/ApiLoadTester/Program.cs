@@ -32,6 +32,12 @@ public class LoginResponse
 
 public class ApiLoadTester
 {
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+    
     private readonly HttpClient _httpClient;
     private readonly string _apiUrl;
     private readonly LoginRequest _testData;
@@ -115,7 +121,7 @@ public class ApiLoadTester
         {
             var requestStopwatch = Stopwatch.StartNew();
             
-            var json = JsonSerializer.Serialize(_testData);
+            var json = JsonSerializer.Serialize(_testData, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
             string final = _apiUrl + "api/auth/get-user-token";
@@ -125,26 +131,21 @@ public class ApiLoadTester
             requestStopwatch.Stop();
             
             // Validate response
-            if (response.IsSuccessStatusCode)
-            {
-                try
-                {
-                    var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseBody, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-                    
-                    if (loginResponse?.Success == true && loginResponse.UserId.HasValue)
-                    {
-                        return (true, requestStopwatch.Elapsed.TotalMilliseconds);
-                    }
-                }
-                catch (JsonException)
-                {
-                    // JSON parsing failed, but HTTP was successful
-                }
-            }
+            if (!response.IsSuccessStatusCode) 
+                return (false, requestStopwatch.Elapsed.TotalMilliseconds);
             
+            try
+            {
+                var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseBody, _jsonOptions);
+                    
+                if (loginResponse is { Success: true, UserId: not null })
+                    return (true, requestStopwatch.Elapsed.TotalMilliseconds);
+            }
+            catch (JsonException)
+            {
+                // JSON parsing failed, but HTTP was successful
+            }
+
             return (false, requestStopwatch.Elapsed.TotalMilliseconds);
         }
         catch (Exception ex)
