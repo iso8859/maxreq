@@ -25,8 +25,8 @@ POST /api/auth/get-user-token
 Content-Type: application/json
 
 {
-  "Username": "user1@example.com",
-  "HashedPassword": "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"
+  "username": "user1@example.com",
+  "hashedPassword": "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"
 }
 ```
 
@@ -90,7 +90,7 @@ curl http://localhost:6000/api/auth/create-db
 ```bash
 curl -X POST http://localhost:6000/api/auth/get-user-token \
   -H "Content-Type: application/json" \
-  -d '{"Username":"user1@example.com","HashedPassword":"0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"}'
+  -d '{"username":"user1@example.com","hashedPassword":"0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"}'
 ```
 
 ## ⚡ Performance Characteristics

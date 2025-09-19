@@ -32,8 +32,8 @@ Returns: `"UserTokenApi Go server is running"`
 Request:
 ```json
 {
-  "Username": "user@example.com",
-  "HashedPassword": "sha256_hash_here"
+  "username": "user@example.com",
+  "hashedPassword": "sha256_hash_here"
 }
 ```
 
@@ -87,7 +87,7 @@ curl http://localhost:8082/api/auth/create-db
 ### Test Authentication
 ```bash
 curl -X POST -H "Content-Type: application/json" \
-  -d '{"Username":"user1@example.com","HashedPassword":"ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"}' \
+  -d '{"username":"user1@example.com","hashedPassword":"ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"}' \
   http://localhost:8082/api/auth/get-user-token
 ```
 
