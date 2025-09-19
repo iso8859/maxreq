@@ -25,8 +25,8 @@ logger = logging.getLogger("usertoken-python")
 
 # --- Models ---
 class LoginRequest(BaseModel):
-    Username: str
-    HashedPassword: str
+    username: str
+    hashedPassword: str
 
 class LoginResponse(BaseModel):
     success: bool
@@ -93,14 +93,14 @@ async def get_user_token(req: LoginRequest):
     try:
         async with aiosqlite.connect(DB_PATH) as db:
             async with db.execute(
-                "SELECT id FROM user WHERE mail = ? AND hashed_password = ?", (req.Username, req.HashedPassword)
+                "SELECT id FROM user WHERE mail = ? AND hashed_password = ?", (req.username, req.hashedPassword)
             ) as cursor:
                 row = await cursor.fetchone()
                 if row:
                     return LoginResponse(success=True, userId=row[0])
                 return LoginResponse(success=False, errorMessage="Invalid username or password")
     except Exception as e:
-        logger.error("Auth error for user %s: %s", req.Username, e, exc_info=True)
+        logger.error("Auth error for user %s: %s", req.username, e, exc_info=True)
         raise HTTPException(status_code=500, detail="Database error")
 
 # --- Database setup / data seeding ---
