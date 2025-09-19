@@ -17,8 +17,8 @@ import java.util.*;
 
 public class App {
     static class LoginRequest {
-        public String Username;
-        public String HashedPassword;
+        public String username;
+        public String hashedPassword;
     }
     static class LoginResponse {
         public boolean success;
@@ -127,12 +127,12 @@ public class App {
                 ObjectMapper om = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 try (InputStream is = ex.getRequestBody()) {
                     LoginRequest req = om.readValue(is, LoginRequest.class);
-                    if (req == null || req.Username == null || req.HashedPassword == null) {
+                    if (req == null || req.username == null || req.hashedPassword == null) {
                         LoginResponse resp = new LoginResponse();
-                        resp.success = false; resp.userId = null; resp.errorMessage = "Username and hashed password are required";
+                        resp.success = false; resp.userId = null; resp.errorMessage = "username and hashed password are required";
                         sendJson(ex, 200, resp); return;
                     }
-                    Long id = db.getUser(req.Username, req.HashedPassword);
+                    Long id = db.getUser(req.username, req.hashedPassword);
                     LoginResponse resp = new LoginResponse();
                     if (id != null) { resp.success = true; resp.userId = id; resp.errorMessage = null; }
                     else { resp.success = false; resp.userId = null; resp.errorMessage = "Invalid username or password"; }
