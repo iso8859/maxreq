@@ -20,45 +20,20 @@ namespace UserTokenApi.Controllers
         [HttpPost("get-user-token")]
         public async Task<ActionResult<LoginResponse>> GetUserToken([FromBody] LoginRequest request)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.HashedPassword))
-                {
-                    return Ok(new LoginResponse
-                    {
-                        Success = false,
-                        ErrorMessage = "Username and hashed password are required"
-                    });
-                }
+            var user = await _databaseService.GetUserByMailAndPasswordAsync(request.Username, request.HashedPassword);
 
-                var user = await _databaseService.GetUserByMailAndPasswordAsync(request.Username, request.HashedPassword);
-                
-                if (user != null)
-                {
-                    return Ok(new LoginResponse
-                    {
-                        Success = true,
-                        UserId = user.Id
-                    });
-                }
-                else
-                {
-                    return Ok(new LoginResponse
-                    {
-                        Success = false,
-                        ErrorMessage = "Invalid username or password"
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during user authentication");
+            if (user == null)
                 return Ok(new LoginResponse
                 {
                     Success = false,
-                    ErrorMessage = "An error occurred during authentication"
+                    ErrorMessage = "Invalid username or password"
                 });
-            }
+
+            return Ok(new LoginResponse
+            {
+                Success = true,
+                UserId = user.Id
+            });
         }
 
         [HttpGet("create-db")]

@@ -20,41 +20,23 @@ using (var scope = app.Services.CreateScope())
     await databaseService.InitializeDatabaseAsync();
 }
 
-app.MapPost("api/auth/get-user-token", static async (
-    [FromBody] LoginRequest request,
-    DatabaseService dbService,
-    ILogger<Program> logger) =>
-{
-    try
+app.MapPost("api/auth/get-user-token",
+    static async ([FromBody] LoginRequest request, DatabaseService dbService, ILogger<Program> logger) =>
     {
         var user = await dbService.GetUserByMailAndPasswordAsync(request.Username, request.HashedPassword);
-        if (user != null)
-        {
-            return Results.Ok(new LoginResponse
-            {
-                Success = true,
-                UserId = user.Id
-            });
-        }
-        else
-        {
+        if (user == null)
             return Results.Ok(new LoginResponse
             {
                 Success = false,
                 ErrorMessage = "Invalid username or password"
             });
-        }
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error during user authentication");
+
         return Results.Ok(new LoginResponse
         {
-            Success = false,
-            ErrorMessage = "An error occurred during authentication"
+            Success = true,
+            UserId = user.Id
         });
-    }
-});
+    });
 
 app.MapGet("/api/auth/create-db", static async (DatabaseService dbService, ILogger<Program> logger) =>
 {
