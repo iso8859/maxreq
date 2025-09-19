@@ -17,8 +17,8 @@ import (
 
 // LoginRequest represents the authentication request
 type LoginRequest struct {
-	Username       string `json:"Username" binding:"required"`
-	HashedPassword string `json:"HashedPassword" binding:"required"`
+	Username       string `json:"username" binding:"required"`
+	HashedPassword string `json:"hashedPassword" binding:"required"`
 }
 
 // LoginResponse represents the authentication response
