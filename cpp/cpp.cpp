@@ -193,8 +193,8 @@ int main() {
                     callback(resp);
                     return;
                 }
-                std::string username = requestBody["Username"].asString();
-                std::string hashedPassword = requestBody["HashedPassword"].asString();
+                std::string username = requestBody["username"].asString();
+                std::string hashedPassword = requestBody["hashedPassword"].asString();
 
                 Database db(dbPath);
                 Json::Value response;
