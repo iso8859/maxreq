@@ -1,6 +1,6 @@
 use actix_web::{
     web, App, HttpServer, HttpResponse, Result as ActixResult,
-    middleware::Logger,
+    //middleware::Logger,
 };
 use actix_cors::Cors;
 use rusqlite::{Connection, Result as SqliteResult};
@@ -11,17 +11,19 @@ use tracing::{info, error};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginRequest {
-    username: String,
-    #[serde(rename = "hashedPassword")]
+    #[serde(rename = "UserName")]
+    user_name: String,
+    #[serde(rename = "HashedPassword")]
     hashed_password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginResponse {
+    #[serde(rename = "Success")]
     success: bool,
-    #[serde(rename = "userId")]
+    #[serde(rename = "UserId")]
     user_id: Option<i64>,
-    #[serde(rename = "errorMessage")]
+    #[serde(rename = "ErrorMessage")]
     error_message: Option<String>,
 }
 
@@ -56,25 +58,26 @@ impl AppState {
         })
     }
 
-    fn get_user_by_credentials(&self, email: &str, hashed_password: &str) -> SqliteResult<Option<User>> {
+    fn get_user_by_credentials(&self, request: &LoginRequest) -> SqliteResult<Option<User>> {
         let conn = self.db.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "SELECT id, mail, hashed_password FROM user WHERE mail = ?1 AND hashed_password = ?2"
+        let mut stmt = conn.prepare_cached(
+            "SELECT id, mail, hashed_password FROM user WHERE mail = ?1 AND hashed_password = ?2 limit 1"
         )?;
-        
-        let user_iter = stmt.query_map([email, hashed_password], |row| {
+
+        // get scalar response
+        let user = stmt.query_row([&request.user_name, &request.hashed_password], |row| {
             Ok(User {
                 id: row.get(0)?,
                 mail: row.get(1)?,
                 hashed_password: row.get(2)?,
             })
-        })?;
-
-        for user in user_iter {
-            return Ok(Some(user?));
+        });
+      
+        match user {
+            Ok(u) => Ok(Some(u)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e)
         }
-        
-        Ok(None)
     }
 
     fn create_test_users(&self, count: usize) -> Result<usize, Box<dyn std::error::Error>> {
@@ -117,7 +120,7 @@ async fn get_user_token(
     data: web::Data<AppState>,
     request: web::Json<LoginRequest>,
 ) -> ActixResult<HttpResponse> {
-    match data.get_user_by_credentials(&request.username, &request.hashed_password) {
+    match data.get_user_by_credentials(&request) {
         Ok(Some(user)) => Ok(HttpResponse::Ok().json(LoginResponse {
             success: true,
             user_id: Some(user.id),
@@ -129,7 +132,7 @@ async fn get_user_token(
             error_message: Some("Invalid username or password".to_string()),
         })),
         Err(e) => {
-            error!("Database error: {}", e);
+            info!("Database error: {}", e);
             Ok(HttpResponse::Ok().json(LoginResponse {
                 success: false,
                 user_id: None,
@@ -180,7 +183,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(app_state.clone()))
             .wrap(cors)
-            .wrap(Logger::default())
+            // .wrap(Logger::default()) //to avoid to lose time in outputting logs
             .route("/health", web::get().to(health))
             .route("/api/auth/get-user-token", web::post().to(get_user_token))
             .route("/api/auth/create-db", web::get().to(create_db))
