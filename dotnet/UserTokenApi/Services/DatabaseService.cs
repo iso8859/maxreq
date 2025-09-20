@@ -2,12 +2,27 @@ using Microsoft.Data.Sqlite;
 using UserTokenApi.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Concurrent;
 
 namespace UserTokenApi.Services
 {
+    public class DbPool
+    {
+        public SqliteConnection Connection { get; set; }
+        public SqliteCommand Command { get; set; }
+        public DbPool(SqliteConnection connection)
+        {
+            Connection = connection;
+            Command = null!;
+        }
+    }
+
     public class DatabaseService
     {
         private readonly string _connectionString;
+        SqliteConnection? _connection;
+        // Create a command pool for speed optimization
+         ConcurrentBag<DbPool> _dbPools = new ConcurrentBag<DbPool>();
 
         public DatabaseService(IConfiguration configuration)
         {
@@ -17,47 +32,67 @@ namespace UserTokenApi.Services
 
         public async Task InitializeDatabaseAsync()
         {
-            using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync();
+            _connection = new SqliteConnection(_connectionString);
+            await _connection.OpenAsync();
 
-            var command = connection.CreateCommand();
-            command.CommandText = @"
+            using (var command = _connection.CreateCommand())
+            {
+                command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS user (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     mail TEXT NOT NULL UNIQUE,
                     hashed_password TEXT NOT NULL
                 )";
 
-            await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
+            }
+            _connection.Close();
         }
 
-        public async Task<User?> GetUserByMailAndPasswordAsync(string mail, string hashedPassword)
+        public async Task<User?> GetUserByMailAndPasswordAsync(DTOs.LoginRequest loginRequest)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync();
+            if (loginRequest.Username == "no_db")
+                return new User { Id = 1 };
 
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT id FROM user WHERE mail = @mail AND hashed_password = @hashedPassword";
-            command.Parameters.AddWithValue("@mail", mail);
-            command.Parameters.AddWithValue("@hashedPassword", hashedPassword);
+            if (!_dbPools.TryTake(out var dbPool))
+            {
+                var connection = new SqliteConnection(_connectionString);
+                await connection.OpenAsync();
+                dbPool = new DbPool(connection);
+                dbPool.Command = dbPool.Connection.CreateCommand();
+                dbPool.Command.CommandText = "SELECT id FROM user WHERE mail = @mail AND hashed_password = @hashedPassword limit 1";
+                dbPool.Command.Parameters.AddWithValue("@mail", loginRequest.Username);
+                dbPool.Command.Parameters.AddWithValue("@hashedPassword", loginRequest.HashedPassword);
+                Console.WriteLine($"Created new command.");
+            }
+            else
+            {
+                dbPool.Command.Parameters["@mail"].Value = loginRequest.Username;
+                dbPool.Command.Parameters["@hashedPassword"].Value = loginRequest.HashedPassword;
+            }
 
             try
             {
-                long id = (long)(await command.ExecuteScalarAsync());
-                return new User
+                var result = await dbPool.Command.ExecuteScalarAsync();
+                if (result is long id)
                 {
-                    Id = id
-                };
+                    return new User
+                    {
+                        Id = id
+                    };
+                }
             }
             catch { }
+            finally
+            {
+                _dbPools.Add(dbPool);
+            }
 
             return null;
         }
 
         public async Task<int> CreateUsersAsync(int count = 10000)
         {
-            await InitializeDatabaseAsync();
-
             using var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync();
 
@@ -68,7 +103,7 @@ namespace UserTokenApi.Services
 
             using var transaction = connection.BeginTransaction();
 
-            var command = connection.CreateCommand();
+            using var command = connection.CreateCommand();
             command.CommandText = "INSERT INTO user (mail, hashed_password) VALUES (@mail, @hashedPassword)";
 
             var mailParam = command.CreateParameter();

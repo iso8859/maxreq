@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
@@ -37,12 +38,9 @@ public class ApiLoadTester
         //PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
-    
+
     private readonly HttpClient _httpClient;
     private readonly string _apiUrl;
-    private readonly LoginRequest _testData;
-    private readonly string _json;
-    private readonly StringContent _content;
 
     public ApiLoadTester(string apiUrl, int maxConcurrentConnections = 16)
     {
@@ -60,16 +58,9 @@ public class ApiLoadTester
         };
 
         _apiUrl = apiUrl;
-        _testData = new LoginRequest
-        {
-            UserName = "user1@example.com",
-            HashedPassword = "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"
-        };
-        _json = JsonSerializer.Serialize(_testData, _jsonOptions);
-        _content = new StringContent(_json, Encoding.UTF8, "application/json");
     }
 
-    public async Task<LoadTestResult> RunLoadTest(int totalRequests, int maxConcurrency)
+    public async Task<LoadTestResult> RunLoadTest(int totalRequests, int maxConcurrency, bool no_db)
     {
         Console.WriteLine($"🚀 Starting load test...");
         Console.WriteLine($"   Target API: {_apiUrl}");
@@ -80,7 +71,9 @@ public class ApiLoadTester
 
         string final = _apiUrl + "api/auth/create-db";
         Console.WriteLine($"   Initializing database with: {final}");
-        await _httpClient.GetAsync(final);
+        var response = await _httpClient.GetAsync(final);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"   Response: {(int)response.StatusCode} {response.StatusCode} {responseBody}");
 
         var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
         var tasks = new List<Task<(bool Success, double ResponseTimeMs)>>();
@@ -89,7 +82,7 @@ public class ApiLoadTester
         // Create all tasks
         for (int i = 0; i < totalRequests; i++)
         {
-            tasks.Add(ExecuteRequestAsync(semaphore, i + 1));
+            tasks.Add(ExecuteRequestAsync(semaphore, no_db ? -1 : i + 1));
         }
 
         // Wait for all tasks to complete
@@ -117,30 +110,59 @@ public class ApiLoadTester
         return loadTestResult;
     }
 
+    private static string ComputeSha256Hash(string rawData)
+    {
+        using SHA256 sha256Hash = SHA256.Create();
+        byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+        return Convert.ToHexStringLower(bytes);
+    }
+
+
     private async Task<(bool Success, double ResponseTimeMs)> ExecuteRequestAsync(SemaphoreSlim semaphore, int requestId)
     {
         await semaphore.WaitAsync();
-        
+
         try
         {
             var requestStopwatch = Stopwatch.StartNew();
-            
+
             string final = _apiUrl + "api/auth/get-user-token";
-            var response = await _httpClient.PostAsync(final, _content);
+            var testData = new LoginRequest();
+            if (requestId == -1)
+            {
+                testData.UserName = "no_db";
+                testData.HashedPassword = "no_db";
+            }
+            else
+            {
+                testData.UserName = $"user{requestId}@example.com";
+                testData.HashedPassword = ComputeSha256Hash($"password{requestId}");
+            }
+            var json = JsonSerializer.Serialize(testData, _jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(final, content);
             var responseBody = await response.Content.ReadAsStringAsync();
-            
+            if (requestId % 1000 == 0)
+            {
+                Console.WriteLine($"   Request {requestId}: " + responseBody);
+            }
+
             requestStopwatch.Stop();
-            
+
             // Validate response
-            if (!response.IsSuccessStatusCode) 
+            if (!response.IsSuccessStatusCode)
                 return (false, requestStopwatch.Elapsed.TotalMilliseconds);
-            
+
             try
             {
                 var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseBody, _jsonOptions);
-                    
+
                 if (loginResponse is { Success: true, UserId: not null })
                     return (true, requestStopwatch.Elapsed.TotalMilliseconds);
+                else
+                    Console.WriteLine(loginResponse.ErrorMessage);
             }
             catch (JsonException)
             {
@@ -165,28 +187,28 @@ public class ApiLoadTester
         Console.WriteLine("🎯 Load Test Results");
         Console.WriteLine("=" + new string('=', 50));
         Console.WriteLine();
-        
+
         Console.WriteLine($"📊 Overview:");
         Console.WriteLine($"   Total Duration: {result.TotalDuration.TotalSeconds:F2} seconds");
         Console.WriteLine($"   Total Requests: {result.TotalRequests:N0}");
-        Console.WriteLine($"   Successful: {result.SuccessfulRequests:N0} ({(double)result.SuccessfulRequests/result.TotalRequests*100:F1}%)");
-        Console.WriteLine($"   Failed: {result.FailedRequests:N0} ({(double)result.FailedRequests/result.TotalRequests*100:F1}%)");
+        Console.WriteLine($"   Successful: {result.SuccessfulRequests:N0} ({(double)result.SuccessfulRequests / result.TotalRequests * 100:F1}%)");
+        Console.WriteLine($"   Failed: {result.FailedRequests:N0} ({(double)result.FailedRequests / result.TotalRequests * 100:F1}%)");
         Console.WriteLine();
-        
+
         Console.WriteLine($"⚡ Performance Metrics:");
         Console.WriteLine($"   Requests/Second: {result.RequestsPerSecond:F1}");
         Console.WriteLine($"   Mean Response Time: {result.MeanResponseTimeMs:F1} ms");
         Console.WriteLine($"   Min Response Time: {result.MinResponseTimeMs:F1} ms");
         Console.WriteLine($"   Max Response Time: {result.MaxResponseTimeMs:F1} ms");
         Console.WriteLine();
-        
+
         if (result.ResponseTimes.Count > 0)
         {
             var sortedTimes = result.ResponseTimes.OrderBy(x => x).ToList();
             var p50 = GetPercentile(sortedTimes, 50);
             var p95 = GetPercentile(sortedTimes, 95);
             var p99 = GetPercentile(sortedTimes, 99);
-            
+
             Console.WriteLine($"📈 Response Time Percentiles:");
             Console.WriteLine($"   50th percentile (median): {p50:F1} ms");
             Console.WriteLine($"   95th percentile: {p95:F1} ms");
@@ -197,14 +219,14 @@ public class ApiLoadTester
     private double GetPercentile(List<double> sortedValues, int percentile)
     {
         if (sortedValues.Count == 0) return 0;
-        
+
         double index = (percentile / 100.0) * (sortedValues.Count - 1);
         int lowerIndex = (int)Math.Floor(index);
         int upperIndex = (int)Math.Ceiling(index);
-        
+
         if (lowerIndex == upperIndex)
             return sortedValues[lowerIndex];
-        
+
         double weight = index - lowerIndex;
         return sortedValues[lowerIndex] * (1 - weight) + sortedValues[upperIndex] * weight;
     }
@@ -231,7 +253,7 @@ class Program
         {
             totalRequests = requestCount;
         }
-        
+
         if (args.Length > 1 && int.TryParse(args[1], out int concurrency))
         {
             maxConcurrency = concurrency;
@@ -242,12 +264,15 @@ class Program
             testFilter = args[2].ToLower();
         }
 
+        bool no_db = false;
+        if (args.Length > 3)
+            no_db = args[3].ToLower() == "no_db";
+
         Console.WriteLine($"Configuration: {totalRequests:N0} requests, {maxConcurrency} concurrent connections");
         Console.WriteLine();
 
         // Configuration
-        const string dotnetApiUrl = "http://localhost:5150/";
-        const string dotnetMiniApiUrl = "http://localhost:5190/";
+        const string dotnetApiUrl = "http://localhost:5000/";
         const string nodeApiUrl = "http://localhost:80/nodejs/";
         const string rustApiUrl = "http://localhost:8080/";
         const string phpApiUrl = "http://localhost:80/php/";
@@ -258,55 +283,51 @@ class Program
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
-            await TestApi(".NET API", dotnetApiUrl, totalRequests, maxConcurrency);
-        }
-        if (testFilter == "dotnetmini" || testFilter == "all")
-        {
-            await TestApi(".NET API", dotnetMiniApiUrl, totalRequests, maxConcurrency);
+            await TestApi(".NET API", dotnetApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "node" || testFilter == "all")
         {
-            await TestApi("Node.js API", nodeApiUrl, totalRequests, maxConcurrency);
+            await TestApi("Node.js API", nodeApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "rust" || testFilter == "all")
         {
-            await TestApi("Rust API", rustApiUrl, totalRequests, maxConcurrency);
+            await TestApi("Rust API", rustApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "php" || testFilter == "all")
         {
-            await TestApi("PHP API", phpApiUrl, totalRequests, maxConcurrency);
+            await TestApi("PHP API", phpApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "python" || testFilter == "all")
         {
-            await TestApi("Python API", pythonApiUrl, totalRequests, maxConcurrency);
+            await TestApi("Python API", pythonApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "java" || testFilter == "all")
         {
-            await TestApi("Java API", javaApiUrl, totalRequests, maxConcurrency);
+            await TestApi("Java API", javaApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "cpp" || testFilter == "all")
         {
-            await TestApi("C++ API", cppApiUrl, totalRequests, maxConcurrency);
+            await TestApi("C++ API", cppApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "go" || testFilter == "all")
         {
-            await TestApi("Go API", goApiUrl, totalRequests, maxConcurrency);
+            await TestApi("Go API", goApiUrl, totalRequests, maxConcurrency, no_db);
         }
 
         Console.WriteLine();
         Console.WriteLine("✅ Load testing completed!");
     }
 
-    static async Task TestApi(string apiName, string apiUrl, int totalRequests, int maxConcurrency)
+    static async Task TestApi(string apiName, string apiUrl, int totalRequests, int maxConcurrency, bool no_db)
     {
         Console.WriteLine($"🎯 Testing {apiName}");
         Console.WriteLine("-" + new string('-', 30));
-        
+
         var tester = new ApiLoadTester(apiUrl, maxConcurrency);
-        
+
         try
         {
-            var result = await tester.RunLoadTest(totalRequests, maxConcurrency);
+            var result = await tester.RunLoadTest(totalRequests, maxConcurrency, no_db);
             Console.WriteLine($"✅ {apiName} test completed!");
             Console.WriteLine();
             tester.PrintResults(result);

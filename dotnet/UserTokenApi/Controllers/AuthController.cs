@@ -20,7 +20,7 @@ namespace UserTokenApi.Controllers
         [HttpPost("get-user-token")]
         public async Task<ActionResult<LoginResponse>> GetUserToken([FromBody] LoginRequest request)
         {
-            var user = await _databaseService.GetUserByMailAndPasswordAsync(request.Username, request.HashedPassword);
+            var user = await _databaseService.GetUserByMailAndPasswordAsync(request);
 
             if (user == null)
                 return Ok(new LoginResponse

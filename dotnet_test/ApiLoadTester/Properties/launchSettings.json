@@ -2,7 +2,7 @@
   "profiles": {
     "ApiLoadTester": {
       "commandName": "Project",
-      "commandLineArgs": "10000 16 rust"
+      "commandLineArgs": "10000 16 go"
     }
   }
 }
