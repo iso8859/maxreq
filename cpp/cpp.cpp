@@ -186,32 +186,32 @@ int main() {
 				std::stringstream s(body);
                 if (!Json::parseFromStream(builder, s, &requestBody, &errs)) {
                     Json::Value response;
-                    response["success"] = false;
-                    response["userId"] = Json::nullValue;
-                    response["errorMessage"] = "Invalid JSON";
+                    response["Success"] = false;
+                    response["UserId"] = Json::nullValue;
+                    response["ErrorMessage"] = "Invalid JSON";
                     auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
                     callback(resp);
                     return;
                 }
-                std::string username = requestBody["username"].asString();
-                std::string hashedPassword = requestBody["hashedPassword"].asString();
+                std::string username = requestBody["UserName"].asString();
+                std::string hashedPassword = requestBody["HashedPassword"].asString();
 
                 Database db(dbPath);
                 Json::Value response;
                 if (!db.isValid()) {
-                    response["success"] = false;
-                    response["userId"] = Json::nullValue;
-                    response["errorMessage"] = "Database connection failed";
+                    response["Success"] = false;
+                    response["UserId"] = Json::nullValue;
+                    response["ErrorMessage"] = "Database connection failed";
                 } else {
                     auto user = db.getUserByCredentials(username, hashedPassword);
                     if (user) {
-                        response["success"] = true;
-                        response["userId"] = static_cast<Json::Int64>(user->id);
-                        response["errorMessage"] = Json::nullValue;
+                        response["Success"] = true;
+                        response["UserId"] = static_cast<Json::Int64>(user->id);
+                        response["ErrorMessage"] = Json::nullValue;
                     } else {
-                        response["success"] = false;
-                        response["userId"] = Json::nullValue;
-                        response["errorMessage"] = "Invalid username or password";
+                        response["Success"] = false;
+                        response["UserId"] = Json::nullValue;
+                        response["ErrorMessage"] = "Invalid username or password";
                     }
                 }
                 auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
@@ -219,9 +219,9 @@ int main() {
             } catch (const std::exception& e) {
                 Json::Value response;
                 Json::CharReaderBuilder builder;
-                response["success"] = false;
-                response["userId"] = Json::nullValue;
-                response["errorMessage"] = "An error occurred during authentication";
+                response["Success"] = false;
+                response["UserId"] = Json::nullValue;
+                response["ErrorMessage"] = "An error occurred during authentication";
                 auto resp = drogon::HttpResponse::newHttpJsonResponse(response);
                 callback(resp);
             }
