@@ -19,7 +19,7 @@ public class LoadTestResult
 
 public class LoginRequest
 {
-    public string Username { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public string HashedPassword { get; set; } = string.Empty;
 }
 
@@ -34,13 +34,15 @@ public class ApiLoadTester
 {
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        //PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
     
     private readonly HttpClient _httpClient;
     private readonly string _apiUrl;
     private readonly LoginRequest _testData;
+    private readonly string _json;
+    private readonly StringContent _content;
 
     public ApiLoadTester(string apiUrl, int maxConcurrentConnections = 16)
     {
@@ -60,9 +62,11 @@ public class ApiLoadTester
         _apiUrl = apiUrl;
         _testData = new LoginRequest
         {
-            Username = "user1@example.com",
+            UserName = "user1@example.com",
             HashedPassword = "0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"
         };
+        _json = JsonSerializer.Serialize(_testData, _jsonOptions);
+        _content = new StringContent(_json, Encoding.UTF8, "application/json");
     }
 
     public async Task<LoadTestResult> RunLoadTest(int totalRequests, int maxConcurrency)
@@ -121,11 +125,8 @@ public class ApiLoadTester
         {
             var requestStopwatch = Stopwatch.StartNew();
             
-            var json = JsonSerializer.Serialize(_testData, _jsonOptions);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
             string final = _apiUrl + "api/auth/get-user-token";
-            var response = await _httpClient.PostAsync(final, content);
+            var response = await _httpClient.PostAsync(final, _content);
             var responseBody = await response.Content.ReadAsStringAsync();
             
             requestStopwatch.Stop();
