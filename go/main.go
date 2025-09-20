@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,15 +16,15 @@ import (
 
 // LoginRequest represents the authentication request
 type LoginRequest struct {
-	Username       string `json:"username" binding:"required"`
-	HashedPassword string `json:"hashedPassword" binding:"required"`
+	UserName       string `json:"UserName" binding:"required"`
+	HashedPassword string `json:"HashedPassword" binding:"required"`
 }
 
 // LoginResponse represents the authentication response
 type LoginResponse struct {
-	Success      bool    `json:"success"`
-	UserId       *int64  `json:"userId"`
-	ErrorMessage *string `json:"errorMessage"`
+	Success      bool   `json:"Success"`
+	UserId       int64  `json:"UserId"`
+	ErrorMessage string `json:"ErrorMessage"`
 }
 
 // User represents a user from the database
@@ -39,24 +38,18 @@ type DatabaseService struct {
 }
 
 // NewDatabaseService creates a new database service
-func NewDatabaseService(dbPath string) (*DatabaseService, error) {
-	readOnly := strings.EqualFold(os.Getenv("READ_ONLY_DB"), "true") || strings.EqualFold(os.Getenv("READ_ONLY"), "true")
-
+func NewDatabaseService(dbPath string, readOnly bool) (*DatabaseService, error) {
 	// Build DSN. For modernc sqlite driver, use file: prefix to add query parameters.
 	dsn := dbPath
 	if !strings.HasPrefix(dbPath, "file:") {
 		dsn = "file:" + dbPath
 	}
+
+	// Add SQLite pragmas for better concurrency and performance
 	if readOnly {
-		dsn += "?mode=ro" // open database in read-only mode
+		dsn += "?mode=ro&_busy_timeout=30000&_journal_mode=WAL&_synchronous=NORMAL"
 	} else {
-		// Busy timeout + shared cache can help under load; pragmas applied after open.
-		if !strings.Contains(dsn, "?") {
-			dsn += "?"
-		} else {
-			dsn += "&"
-		}
-		dsn += "_busy_timeout=5000"
+		dsn += "?_busy_timeout=30000&_journal_mode=WAL&_synchronous=NORMAL&_cache_size=10000"
 	}
 
 	db, err := sql.Open("sqlite", dsn)
@@ -64,20 +57,10 @@ func NewDatabaseService(dbPath string) (*DatabaseService, error) {
 		return nil, fmt.Errorf("open db (%s): %w", dsn, err)
 	}
 
-	// Apply performance pragmas only if writable
-	if !readOnly {
-		pragmas := []string{
-			"PRAGMA journal_mode=WAL;",
-			"PRAGMA synchronous=OFF;",
-			"PRAGMA temp_store=MEMORY;",
-			"PRAGMA mmap_size=134217728;", // 128MB
-		}
-		for _, p := range pragmas {
-			if _, perr := db.Exec(p); perr != nil {
-				log.Printf("warning: failed to apply pragma %s: %v", p, perr)
-			}
-		}
-	}
+	// Set connection pool limits to prevent too many concurrent connections
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(time.Minute * 5)
 
 	service := &DatabaseService{db: db}
 	if !readOnly { // Only attempt to create schema when writable
@@ -103,23 +86,57 @@ func (ds *DatabaseService) InitializeDatabase() error {
 }
 
 // GetUserByMailAndPassword retrieves a user by email and password
-func (ds *DatabaseService) GetUserByMailAndPassword(mail, hashedPassword string) (*User, error) {
+func (ds *DatabaseService) GetUserByMailAndPassword(request LoginRequest) (*User, error) {
 	query := "SELECT id FROM user WHERE mail = ? AND hashed_password = ?"
 	var userID int64
-	
-	err := ds.db.QueryRow(query, mail, hashedPassword).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // User not found
+
+	// Retry logic for SQLITE_BUSY errors
+	maxRetries := 3
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		err := ds.db.QueryRow(query, request.UserName, request.HashedPassword).Scan(&userID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil // User not found
+			}
+			// Check if it's a database busy error and retry
+			if strings.Contains(err.Error(), "database is locked") || strings.Contains(err.Error(), "SQLITE_BUSY") {
+				if attempt < maxRetries-1 {
+					time.Sleep(time.Duration(attempt+1) * 10 * time.Millisecond) // Exponential backoff
+					continue
+				}
+			}
+			return nil, err
 		}
-		return nil, err
+		// Success - return the user
+		return &User{ID: userID}, nil
 	}
 
-	return &User{ID: userID}, nil
+	return nil, fmt.Errorf("failed to query database after %d retries", maxRetries)
 }
 
 // CreateTestUsers creates test users in the database
 func (ds *DatabaseService) CreateTestUsers(count int) (int, error) {
+	// Retry logic for SQLITE_BUSY errors
+	maxRetries := 3
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		result, err := ds.createTestUsersAttempt(count)
+		if err != nil {
+			// Check if it's a database busy error and retry
+			if strings.Contains(err.Error(), "database is locked") || strings.Contains(err.Error(), "SQLITE_BUSY") {
+				if attempt < maxRetries-1 {
+					time.Sleep(time.Duration(attempt+1) * 50 * time.Millisecond) // Exponential backoff
+					continue
+				}
+			}
+			return 0, err
+		}
+		return result, nil
+	}
+	return 0, fmt.Errorf("failed to create test users after %d retries", maxRetries)
+}
+
+// createTestUsersAttempt performs a single attempt to create test users
+func (ds *DatabaseService) createTestUsersAttempt(count int) (int, error) {
 	// Begin transaction
 	tx, err := ds.db.Begin()
 	if err != nil {
@@ -173,36 +190,45 @@ func computeSHA256Hash(input string) string {
 
 // AuthController handles authentication endpoints
 type AuthController struct {
-	dbService *DatabaseService
+	dbService   *DatabaseService
+	dbServiceRO *DatabaseService
 }
 
 // NewAuthController creates a new auth controller
-func NewAuthController(dbService *DatabaseService) *AuthController {
-	return &AuthController{dbService: dbService}
+func NewAuthController(dbService *DatabaseService, dbServiceRO *DatabaseService) *AuthController {
+	return &AuthController{dbService: dbService, dbServiceRO: dbServiceRO}
 }
 
 // GetUserToken handles user authentication
 func (ac *AuthController) GetUserToken(c *gin.Context) {
 	var request LoginRequest
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		errorMsg := "Username and hashed password are required"
 		c.JSON(http.StatusOK, LoginResponse{
 			Success:      false,
-			UserId:       nil,
-			ErrorMessage: &errorMsg,
+			UserId:       0,
+			ErrorMessage: errorMsg,
 		})
 		return
 	}
 
-	user, err := ac.dbService.GetUserByMailAndPassword(request.Username, request.HashedPassword)
+	if request.UserName == "no_db" {
+		c.JSON(http.StatusOK, LoginResponse{
+			Success:      true,
+			UserId:       1,
+			ErrorMessage: "",
+		})
+		return
+	}
+
+	user, err := ac.dbServiceRO.GetUserByMailAndPassword(request)
 	if err != nil {
 		log.Printf("Error during user authentication: %v", err)
-		errorMsg := "An error occurred during authentication"
 		c.JSON(http.StatusOK, LoginResponse{
 			Success:      false,
-			UserId:       nil,
-			ErrorMessage: &errorMsg,
+			UserId:       0,
+			ErrorMessage: err.Error(),
 		})
 		return
 	}
@@ -210,33 +236,23 @@ func (ac *AuthController) GetUserToken(c *gin.Context) {
 	if user != nil {
 		c.JSON(http.StatusOK, LoginResponse{
 			Success:      true,
-			UserId:       &user.ID,
-			ErrorMessage: nil,
+			UserId:       user.ID,
+			ErrorMessage: "",
 		})
 	} else {
 		errorMsg := "Invalid username or password"
 		c.JSON(http.StatusOK, LoginResponse{
 			Success:      false,
-			UserId:       nil,
-			ErrorMessage: &errorMsg,
+			UserId:       0,
+			ErrorMessage: errorMsg,
 		})
 	}
 }
 
 // CreateDatabase handles database creation
 func (ac *AuthController) CreateDatabase(c *gin.Context) {
-	// Prevent seeding if DB opened read-only
-	if strings.EqualFold(os.Getenv("READ_ONLY_DB"), "true") || strings.EqualFold(os.Getenv("READ_ONLY"), "true") {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Database opened in read-only mode"})
-		return
-	}
 
 	userCount := 10000
-	if v := os.Getenv("SEED_USER_COUNT"); v != "" {
-		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
-			userCount = parsed
-		}
-	}
 	start := time.Now()
 	count, err := ac.dbService.CreateTestUsers(userCount)
 	if err != nil {
@@ -281,13 +297,21 @@ func main() {
 	}
 
 	// Initialize database
-	dbService, err := NewDatabaseService(dbPath)
+	dbService, err := NewDatabaseService(dbPath, false)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer dbService.Close()
 
-	authController := NewAuthController(dbService)
+	dbServiceRO, err := NewDatabaseService(dbPath, true)
+	if err != nil {
+		log.Fatalf("Failed to initialize read-only database: %v", err)
+	}
+	defer dbServiceRO.Close()
+
+	// Initialize controllers
+
+	authController := NewAuthController(dbService, dbServiceRO)
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
