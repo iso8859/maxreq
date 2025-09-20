@@ -14,17 +14,19 @@ use tracing::{info, error};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginRequest {
-    username: String,
-    #[serde(rename = "hashedPassword")]
+    #[serde(rename = "UserName")]
+    user_name: String,
+    #[serde(rename = "HashedPassword")]
     hashed_password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginResponse {
+    #[serde(rename = "Success")]
     success: bool,
-    #[serde(rename = "userId")]
+    #[serde(rename = "UserId")]
     user_id: Option<i64>,
-    #[serde(rename = "errorMessage")]
+    #[serde(rename = "ErrorMessage")]
     error_message: Option<String>,
 }
 
@@ -58,25 +60,27 @@ impl AppState {
         })
     }
 
-    fn get_user_by_credentials(&self, email: &str, hashed_password: &str) -> SqliteResult<Option<User>> {
+    fn get_user_by_credentials(&self, request: &LoginRequest) -> SqliteResult<Option<User>> {
         let conn = self.db.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "SELECT id, mail, hashed_password FROM user WHERE mail = ?1 AND hashed_password = ?2"
+        let mut stmt = conn.prepare_cached(
+            "SELECT id, mail, hashed_password FROM user WHERE mail = ?1 AND hashed_password = ?2 limit 1"
         )?;
-        
-        let user_iter = stmt.query_map([email, hashed_password], |row| {
+
+        // get scalar response
+        let user = stmt.query_row([&request.user_name, &request.hashed_password], |row| {
             Ok(User {
                 id: row.get(0)?,
                 mail: row.get(1)?,
                 hashed_password: row.get(2)?,
             })
-        })?;
-
-        for user in user_iter {
-            return Ok(Some(user?));
+        });
+      
+        match user {
+            Ok(u) => Ok(Some(u)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e)
         }
-        
-        Ok(None)
+
     }
 
     fn create_test_users(&self, count: usize) -> Result<usize, Box<dyn std::error::Error>> {
@@ -120,7 +124,7 @@ async fn get_user_token(
     Json(request): Json<LoginRequest>,
 ) -> Result<ResponseJson<LoginResponse>, StatusCode> {
 
-    match state.get_user_by_credentials(&request.username, &request.hashed_password) {
+    match state.get_user_by_credentials(&request) {
         Ok(Some(user)) => Ok(ResponseJson(LoginResponse {
             success: true,
             user_id: Some(user.id),
