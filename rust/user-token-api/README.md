@@ -6,10 +6,5 @@ cargo build --release
 cargo run
 ```
 
-### 2. Development Mode
-```bash
-cargo run
-```
-
 The API will be available at `http://localhost:8080`
 
