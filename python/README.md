@@ -12,32 +12,16 @@ A high-performance Python implementation of the UserToken API using:
   pip install -r requirements.txt
   ```
 
-## Running the API
-```bash
-cd python
-uvicorn main:app --host 0.0.0.0 --port 7000 --workers 16 --log-level critical
-# API runs at http://localhost:7000
-```
+To run the server we start 16 instances behind a load balancer. Each instance listens on a different port.
 
-## API Endpoints
-- `GET /health` — Health check
-- `POST /api/auth/get-user-token` — User authentication
-- `POST /setup-database/{count}` — Bulk user creation
+Look at `ecosystem.config.js` for the configuration.
 
-## Example Usage
-```bash
-# Health check
-curl http://localhost:7000/health
+Look at start.bat / stop.bat for the command to start and stop the server using pm2.
 
-# Setup test data
-curl -X POST http://localhost:7000/setup-database/1000
+Look at folder nginx for the nginx configuration to load balance between the instances.
 
-# Test authentication
-curl -X POST http://localhost:7000/api/auth/get-user-token \
-  -H "Content-Type: application/json" \
-  -d '{"username":"user1@example.com","hashedPassword":"0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"}'
-```
+##How to improve performance ?
 
-## Performance Notes
-- Use `--workers` to scale (for true concurrency, use multiple processes)
-- For best results, run with `uvicorn` and a single worker for apples-to-apples comparison
+Because we have 16 concurrent instances, we need to optimize SQLite for concurrency.
+
+I don't know how to improve this right now. Any help is welcome.

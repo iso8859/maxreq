@@ -1,79 +1,39 @@
-# Multi Dev Language User Token API Comparison
+# Multi Dev Language API Performance Test
 
-**August the 9th, 2025**
+In this repository you will find simple implementations of a UserToken API in multiple programming languages.
 
-This repository contains eight identical user authentication APIs implemented in different programming languages, along with comprehensive performance testing tools. The project demonstrates performance characteristics across C# .NET Core, Node.js, Rust, PHP, Python, Java, C++, and Go implementations. Additionally, there are minimal variants for .NET and Java (javamini) to compare lean hosting models.
+The objective is to get the fastest response for each technology.
 
-# Context
+We can get better performance by optimizing the code, or choosing the right runtime. 
 
-This test have been created for two main purposes:
-1. **Performance Benchmarking**: To compare the performance of different programming languages and frameworks in the context of simple API call and database interaction.
-**We do not evaluate complex compute scenarios**.
-2. **Code readability and maintainability**: To compare the code readability and maintainability across multiple languages.
+For Java minimal API is faster than Spring Boot.
 
-All have been build with AI Claude Sonnet 4, reveiwed and improved by human developers.
-Note : Claude Sonnet 4 didn't succeed to build the C++ API, I had to fix it manually.
-Note 2 : Today choosing C++ for API development is not a good idea. I did it to compare with Rust, which is the "new" C++.
+For Typescript or Javascript, Bun is faster than Node.js. Bun sqlite implementation is really optimized.
 
-## 📊 Performance Benchmarks
+# Test client
 
-Based on testing with 100,000 requests and 16 concurrent connections
-On an AMD Ryzen 7 2700X, 8 core, 16 logical threads - Windows 10 machine.
+A test client is provided in C# .NET 9 in directory dotnet_test. Look at readme.md in this directory for instructions.
 
-```
-PHP (CGI) 2072 req/s
-Node.js 2382 req/s
-Java 3235 req/s
-Java Minimal API 3805 req/s
-Python 4564 req/s
-C++ (*) 5920 req/s
-C# - Controller 6508 req/s
-C# - Minimal API 7401 req/s
-Go 12694 req/s
-Rust 18563 req/s
-```
+# Check if everything is working
+
+To be sure api calls are real I added some trace in the console that display userId to be sure we get a real userId from the database.
+
+# You want to improve ?
+
+This project is open to any improvement, please fork and create a pull request.
+
+You should keep the same API, same database (sqlite), same data (10000 users) and same test procedure (100000 requests, 16 concurrent clients).
+
+Please test on your machine the current version and compare your improvement. Please commmit only if you get really better performance.
+
+Result below is from my machine under Windows 10, AMD Ryzen 7 2700X, 32GB RAM, SSD NVMe.
+
+I keep the best result after 5 runs.
 
 ![Performance Comparison Chart](illustration.png)
 
-=> Conclusion : Today if you need performance don't use interpreted code.
 
-Python, node.js and PHP have all been tested with 16 concurrent client and Nginx front.
-
-## 🔍 Performance Analysis
-
-### 🥇 Top Performers (Compiled Languages)
-- **Rust**: Compiled to native code with zero-cost abstractions - **fastest overall**
-- **Go**: Compiled to native code with efficient runtime and goroutines - **excellent balance of performance and simplicity**
-- **C#/.NET Core**: Compiled to native code with managed runtime - **strong enterprise performance**
-
-### 🥈 Mid-Tier Performance
-- **C++**: Native compilation with minimal overhead, but **not recommended for API development**
-  - *Note*: Difficult and verbose for poor HTTP performance. Better to use a C++ wrapper from Rust, Go or C#.
-  - *Today's choice*: Rust is the superior "new C++" for systems programming
-- **Java**: JVM with JIT compilation - **good performance through runtime optimizations**
-
-### 🥉 Interpreted/Dynamic Languages
-- **Node.js**: V8 JavaScript engine - **decent async performance**
-- **Python**: FastAPI/Uvicorn shows **good async capabilities** despite being interpreted
-- **PHP**: Traditional interpreted approach - **adequate for standard web apps** (here we don't use PHP-FPM because the test plaform is Windows, not Linux)
-
-## 📝 License
+# License
 
 This project is for educational and benchmarking purposes.
 
-## 🔧 Quick Start (selected)
-
-### Java API
-```bash
-cd java
-mvn spring-boot:run
-# Runs on http://localhost:6000
-```
-
-### Java Minimal API (javamini)
-```bash
-cd javamini
-mvn -q -DskipTests package
-java -jar target/javamini-1.0.0-shaded.jar
-# Runs on http://localhost:6060
-```

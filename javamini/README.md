@@ -12,18 +12,7 @@ A minimal Java HTTP server mirroring the Go minimal API style for the UserTokenA
 ## Run
 ```bash
 cd javamini
-mvn -q -e -DskipTests package
+mvn clean package
 java -jar target/javamini-1.0.0-shaded.jar
-# Or customize
-# PORT=6000 DB_PATH=users.db READ_ONLY_DB=false SEED_USER_COUNT=10000 java -jar target/javamini-1.0.0-shaded.jar
 ```
 
-## API
-- GET /health
-- GET /ready
-- POST /api/auth/get-user-token
-  - body: { "username": "user1@example.com", "hashedPassword": "<sha256>" }
-- GET /api/auth/create-db
-
-## Notes
-- Use READ_ONLY_DB=true to open the DB read-only and disable seeding.

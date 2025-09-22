@@ -82,7 +82,7 @@ public class ApiLoadTester
         // Create all tasks
         for (int i = 0; i < totalRequests; i++)
         {
-            tasks.Add(ExecuteRequestAsync(semaphore, no_db ? -1 : i + 1));
+            tasks.Add(ExecuteRequestAsync(semaphore, no_db ? -1 : ((i % 10000) + 1)));
         }
 
         // Wait for all tasks to complete
@@ -280,6 +280,7 @@ class Program
         const string javaApiUrl = "http://localhost:6000/";
         const string cppApiUrl = "http://localhost:8081/";
         const string goApiUrl = "http://localhost:8082/";
+        const string bunApiUrl = "http://localhost:8084/";
 
         if (testFilter == "dotnet" || testFilter == "all")
         {
@@ -312,6 +313,10 @@ class Program
         if (testFilter == "go" || testFilter == "all")
         {
             await TestApi("Go API", goApiUrl, totalRequests, maxConcurrency, no_db);
+        }
+        if (testFilter == "bun" || testFilter == "all")
+        {
+            await TestApi("Bun API", bunApiUrl, totalRequests, maxConcurrency, no_db);
         }
 
         Console.WriteLine();

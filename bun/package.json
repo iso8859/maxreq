@@ -1,0 +1,19 @@
+{
+  "name": "user-token-api-bun",
+  "version": "1.0.0",
+  "description": "TypeScript/Bun version of UserTokenApi reverse-engineered from C#",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
+  },
+  "keywords": ["bun", "typescript", "api", "sqlite", "authentication"],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -32,9 +32,17 @@ type User struct {
 	ID int64 `json:"id"`
 }
 
+// StatementPool holds a prepared statement for reuse
+type StatementPool struct {
+	stmt *sql.Stmt
+	db   *sql.DB
+}
+
 // DatabaseService handles database operations
 type DatabaseService struct {
-	db *sql.DB
+	db              *sql.DB
+	getUserStmtPool chan *StatementPool
+	poolSize        int
 }
 
 // NewDatabaseService creates a new database service
@@ -62,7 +70,26 @@ func NewDatabaseService(dbPath string, readOnly bool) (*DatabaseService, error) 
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(time.Minute * 5)
 
-	service := &DatabaseService{db: db}
+	// Initialize statement pool
+	poolSize := 64
+	getUserStmtPool := make(chan *StatementPool, poolSize)
+
+	service := &DatabaseService{
+		db:              db,
+		getUserStmtPool: getUserStmtPool,
+		poolSize:        poolSize,
+	}
+
+	// Pre-populate the statement pool
+	for i := 0; i < poolSize; i++ {
+		stmt, err := db.Prepare("SELECT id FROM user WHERE mail = ? AND hashed_password = ? LIMIT 1")
+		if err != nil {
+			return nil, fmt.Errorf("failed to prepare statement: %w", err)
+		}
+		getUserStmtPool <- &StatementPool{stmt: stmt, db: db}
+	}
+	fmt.Printf("Created statement pool with %d prepared statements\n", poolSize)
+
 	if !readOnly { // Only attempt to create schema when writable
 		if err := service.InitializeDatabase(); err != nil {
 			return nil, err
@@ -85,15 +112,70 @@ func (ds *DatabaseService) InitializeDatabase() error {
 	return err
 }
 
+// getStatement gets a prepared statement from the pool
+func (ds *DatabaseService) getStatement() *StatementPool {
+	// Fast path: try to take a statement immediately
+	select {
+	case stmt := <-ds.getUserStmtPool:
+		return stmt
+	default:
+	}
+
+	// If pool is momentarily empty, wait a short time for a statement to become available
+	// This avoids creating many transient prepared statements during short spikes.
+	timer := time.NewTimer(20 * time.Millisecond)
+	defer timer.Stop()
+
+	select {
+	case stmt := <-ds.getUserStmtPool:
+		return stmt
+	case <-timer.C:
+		// Timeout - create a fallback statement
+		stmt, err := ds.db.Prepare("SELECT id FROM user WHERE mail = ? AND hashed_password = ? LIMIT 1")
+		if err != nil {
+			log.Printf("Failed to create new statement (fallback): %v", err)
+			return nil
+		}
+		fmt.Println("Created new statement (fallback after wait)")
+		return &StatementPool{stmt: stmt, db: ds.db}
+	}
+}
+
+// returnStatement returns a prepared statement to the pool
+func (ds *DatabaseService) returnStatement(stmtPool *StatementPool) {
+	if stmtPool == nil {
+		return
+	}
+
+	select {
+	case ds.getUserStmtPool <- stmtPool:
+		// Successfully returned to pool
+	default:
+		// Pool is full, close the statement
+		stmtPool.stmt.Close()
+	}
+}
+
 // GetUserByMailAndPassword retrieves a user by email and password
 func (ds *DatabaseService) GetUserByMailAndPassword(request LoginRequest) (*User, error) {
-	query := "SELECT id FROM user WHERE mail = ? AND hashed_password = ?"
+	// Special case for testing
+	if request.UserName == "no_db" {
+		return &User{ID: 1}, nil
+	}
+
+	// Get a prepared statement from the pool
+	stmtPool := ds.getStatement()
+	if stmtPool == nil {
+		return nil, fmt.Errorf("failed to get prepared statement")
+	}
+	defer ds.returnStatement(stmtPool)
+
 	var userID int64
 
 	// Retry logic for SQLITE_BUSY errors
 	maxRetries := 3
 	for attempt := 0; attempt < maxRetries; attempt++ {
-		err := ds.db.QueryRow(query, request.UserName, request.HashedPassword).Scan(&userID)
+		err := stmtPool.stmt.QueryRow(request.UserName, request.HashedPassword).Scan(&userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return nil, nil // User not found
@@ -177,8 +259,19 @@ func (ds *DatabaseService) createTestUsersAttempt(count int) (int, error) {
 	return count, nil
 }
 
-// Close closes the database connection
+// Close closes the database connection and all prepared statements
 func (ds *DatabaseService) Close() error {
+	// Close all prepared statements in the pool
+	close(ds.getUserStmtPool)
+	count := 0
+	for stmtPool := range ds.getUserStmtPool {
+		if stmtPool.stmt != nil {
+			stmtPool.stmt.Close()
+			count++
+		}
+	}
+	fmt.Printf("Closed %d prepared statements from pool\n", count)
+
 	return ds.db.Close()
 }
 
@@ -209,15 +302,6 @@ func (ac *AuthController) GetUserToken(c *gin.Context) {
 			Success:      false,
 			UserId:       0,
 			ErrorMessage: errorMsg,
-		})
-		return
-	}
-
-	if request.UserName == "no_db" {
-		c.JSON(http.StatusOK, LoginResponse{
-			Success:      true,
-			UserId:       1,
-			ErrorMessage: "",
 		})
 		return
 	}

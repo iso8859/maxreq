@@ -3,13 +3,13 @@ package com.example.usertokenapi.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LoginResponse {
-    @JsonProperty("success")
+    @JsonProperty("Success")
     private boolean success;
     
-    @JsonProperty("userId")
+    @JsonProperty("UserId")
     private Long userId;
     
-    @JsonProperty("errorMessage")
+    @JsonProperty("ErrorMessage")
     private String errorMessage;
 
     public LoginResponse() {}
