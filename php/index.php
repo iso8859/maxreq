@@ -73,11 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// log_line('INFO', 'Request start', [
-    'method'=>$_SERVER['REQUEST_METHOD'] ?? '',
-    'uri'=>$_SERVER['REQUEST_URI'] ?? '',
-    'client'=>$_SERVER['REMOTE_ADDR'] ?? '',
-]);
+// log_line('INFO', 'Request start', array(
+//     'method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '',
+//     'uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
+//     'client' => isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '',
+// ));
 
 // ====== Advanced Database Connection Pool with Prepared Statement Cache ======
 class DatabasePool {
@@ -293,7 +293,7 @@ function handleSetupDatabase($count) {
         
         $pdo->beginTransaction();
         for ($i=1; $i <= $count; $i++) {
-            $password = "Password{$i}!";
+            $password = "password{$i}";
             $hashedPassword = hash('sha256', $password);
             $stmt->execute(["user{$i}@example.com", $hashedPassword]);
             if ($i % 1000 === 0) {
@@ -303,6 +303,7 @@ function handleSetupDatabase($count) {
             }
         }
         if ($pdo->inTransaction()) $pdo->commit();
+        
         
         $elapsedMs = round((microtime(true)-$t0)*1000,2);
         // log_line('INFO', 'Seeding complete', ['inserted'=>$count,'ms'=>$elapsedMs]);
