@@ -694,3 +694,4 @@ appsettings.*.json
 *.old
 
 /cpp/drogon/vcpkg_installed
+/.vscode
