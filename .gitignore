@@ -693,3 +693,4 @@ appsettings.*.json
 *.backup
 *.old
 
+/cpp/drogon/vcpkg_installed
