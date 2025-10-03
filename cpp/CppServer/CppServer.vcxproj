@@ -71,11 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);R:\cpppkgs\CppServer\include;R:\cpppkgs\CppServer\modules\OpenSSL\VS\include;R:\cpppkgs\CppServer\modules\asio\asio\include;R:\cpppkgs\CppServer\modules\CppCommon\include;R:\cpppkgs\CppServer\modules\CppCommon\modules\fmt\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);T:\include;T:\modules\OpenSSL\VS\include;T:\modules\asio\asio\include;T:\modules\CppCommon\include;T:\modules\CppCommon\modules\fmt\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);T:\bin;T:\modules\OpenSSL\VS\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\vcpkgs\CppServer\CppServer\include;E:\vcpkgs\CppServer\CppServer\modules\CppCommon\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);E:\vcpkgs\CppServer\CppServer\bin</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);T:\include;T:\modules\OpenSSL\VS\include;T:\modules\asio\asio\include;T:\modules\CppCommon\include;T:\modules\CppCommon\modules\fmt\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);T:\temp\RelWithDebInfo;T:\temp\modules\CppCommon\RelWithDebInfo;T:\temp\modules\CppCommon\modules\RelWithDebInfo;T:\temp\modules\RelWithDebInfo;T:\modules\OpenSSL\VS\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
@@ -121,6 +122,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>cppserver.lib;libssl.lib;libcrypto.lib;ws2_32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,10 +133,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>cppserver.lib;cppcommon.lib;asio.lib;fmt.lib;libssl.lib;libcrypto.lib;ws2_32.lib;crypt32.lib;userenv.lib;rpcrt4.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -142,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="http_server.cpp" />
+    <ClCompile Include="sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asio_service.h" />
