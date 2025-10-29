@@ -3,10 +3,9 @@ use actix_web::{
     //middleware::Logger,
 };
 use actix_cors::Cors;
-use rusqlite::{Connection, Result as SqliteResult};
+use rusqlite::{Result as SqliteResult};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tracing::{info, error};
 use r2d2::Pool;
@@ -46,9 +45,9 @@ struct  AppState {
 
 impl AppState {
     fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        // let conn = Connection::open("users.db")?;
+        let cpus = num_cpus::get() as u32;
         let manager = SqliteConnectionManager::file("users.db");
-        let pool = Pool::builder().max_size(15).build(manager)?;
+        let pool = Pool::builder().max_size(cpus).build(manager)?;
         let conn = pool.get()?;
 
         // Configure SQLite for better performance and concurrency
