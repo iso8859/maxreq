@@ -34,7 +34,7 @@ On Windows 10
 ![Performance Comparison Chart Windows](illustration.png)
 
 On Debian 6.1
-![Performance Comparison Chart Debian](illustration debian.png)
+![Performance Comparison Chart Debian](illustration-debian.png)
 
 # Conclusion
 
