@@ -15,5 +15,5 @@ bin\Release\net9.0\ApiLoadTester.exe [url] [totalRequests] [concurrentClients] [
 For example:
 
 ```bash
-.\bin\Release\net9.0\ApiLoadTester.exe 10000 16 python
+./bin/Release/net9.0/ApiLoadTester 10000 6 python
 ```
