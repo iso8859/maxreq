@@ -1,3 +1,18 @@
+
+Which Programming Language Delivers the Fastest API Performance?
+
+
+This new testing session of maxreq has been done on an OVHcloud VPS. This is incredible the difference between the first and last one.
+
+
+Rust is x6 time more performant than Python.
+
+C#, more easy language than Rust is x5.7 faster.
+
+
+If you want performance for your API please stop using Python and PHP.
+
+
 Multi-Language API Server Performance Comparison.
 
 

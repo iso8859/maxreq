@@ -1,5 +1,3 @@
-Look at https://github.com/chronoxor
-
 # Multi Dev Language API Performance Test
 
 In this repository you will find simple implementations of a UserToken API in multiple programming languages.
@@ -32,8 +30,20 @@ Result below is from my machine under Windows 10, AMD Ryzen 7 2700X, 32GB RAM, S
 
 I keep the best result after 5 runs.
 
-![Performance Comparison Chart](illustration.png)
+On Windows 10
+![Performance Comparison Chart Windows](illustration.png)
 
+On Debian 6.1
+![Performance Comparison Chart Debian](illustration debian.png)
+
+# Conclusion
+
+The Debian tests are the most interresting because we do not put production on Windows 10. 
+
+**We can observe a real difference between the two platforms.**
+Results are more expected on Debian.
+
+I didn't tried C++ on Debian because C++ is too complex today to start a new project and it's very tricky and time consuming to obtain good results.
 
 # License
 
