@@ -4,5 +4,5 @@ To build and run:
 
 ```bash
 dotnet build -c Release UserTokenApi.csproj
-bin\Release\net9.0\UserTokenApi.exe
+bin/Release/net9.0/UserTokenApi
 ```

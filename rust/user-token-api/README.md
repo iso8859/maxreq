@@ -3,7 +3,7 @@
 ### 1. Build and Run
 ```bash
 cargo build --release
-cargo run
+target/release/user-token-api
 ```
 
 The API will be available at `http://localhost:8080`

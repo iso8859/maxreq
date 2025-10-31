@@ -695,3 +695,4 @@ appsettings.*.json
 
 /cpp/drogon/vcpkg_installed
 /.vscode
+go/user-token-api

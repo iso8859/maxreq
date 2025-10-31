@@ -25,11 +25,21 @@ sdk install maven
 
 To install graalvm
 ```bash
-sdk install java 22.3.r19-grl
+sdk install java 25-graal
 ```
-To build native image
+
+To install Azul
 ```bash
-mvn clean package -Pnative
-./target/javamini-1.0.0-native-image-exec
+sdk install java 21.0.4-zulu
+```
+
+To install temurin
+```bash
+sdk install java 25.0.1-tem
+```
+
+To build the project
+```bash
+mvn clean package
 ```
 

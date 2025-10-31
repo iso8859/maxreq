@@ -275,8 +275,8 @@ class Program
         const string dotnetApiUrl = "http://localhost:5000/";
         const string nodeApiUrl = "http://localhost:80/nodejs/";
         const string rustApiUrl = "http://localhost:8080/";
-        const string phpApiUrl = "http://localhost:80/php/";
-        const string pythonApiUrl = "http://localhost:80/nodejs/";
+        const string phpApiUrl = "http://localhost:8080/php/";
+        const string pythonApiUrl = "http://localhost:8000/nodejs/";
         const string javaApiUrl = "http://localhost:6000/";
         const string cppApiUrl = "http://localhost:8081/";
         const string goApiUrl = "http://localhost:8082/";

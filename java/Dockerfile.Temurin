@@ -1,4 +1,4 @@
-# Dockerfile for Java with Eclipse OpenJ9
+# Dockerfile for Java with Eclipse Temurin
 # Build stage with Maven
 FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
@@ -6,8 +6,8 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Runtime stage with OpenJ9 Java 17
-FROM ibm-semeru-runtimes:open-17-jre
+# Runtime stage with Temurin Java 17
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
