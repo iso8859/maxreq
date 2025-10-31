@@ -16,3 +16,20 @@ mvn clean package
 java -jar target/javamini-1.0.0-shaded.jar
 ```
 
+To setup Java on debian without docker
+Setup https://sdkman.io/
+intall maven
+```bash
+sdk install maven
+```
+
+To install graalvm
+```bash
+sdk install java 22.3.r19-grl
+```
+To build native image
+```bash
+mvn clean package -Pnative
+./target/javamini-1.0.0-native-image-exec
+```
+
