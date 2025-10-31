@@ -65,40 +65,44 @@ function createTestUsers(db, count = 10000) {
             }
 
             db.serialize(() => {
-                db.run('BEGIN TRANSACTION');
+                db.run('BEGIN TRANSACTION', (err) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                });
 
                 const stmt = db.prepare('INSERT INTO user (mail, hashed_password) VALUES (?, ?)');
-                let insertedCount = 0;
 
                 for (let i = 1; i <= count; i++) {
                     const email = `user${i}@example.com`;
                     const password = `password${i}`;
                     const hashedPassword = hashPassword(password);
+                    stmt.run(email, hashedPassword);
+                }
 
-                    stmt.run([email, hashedPassword], (err) => {
+                stmt.finalize((err) => {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        reject(err);
+                        return;
+                    }
+
+                    db.run('COMMIT', (err) => {
                         if (err) {
-                            console.error(`Error inserting user ${i}:`, err);
+                            reject(err);
                         } else {
-                            insertedCount++;
-                        }
-
-                        if (i === count) {
-                            stmt.finalize((err) => {
+                            // Count the actual number of users inserted
+                            db.get('SELECT COUNT(*) as count FROM user', (err, row) => {
                                 if (err) {
                                     reject(err);
                                 } else {
-                                    db.run('COMMIT', (err) => {
-                                        if (err) {
-                                            reject(err);
-                                        } else {
-                                            resolve(insertedCount);
-                                        }
-                                    });
+                                    resolve(row.count);
                                 }
                             });
                         }
                     });
-                }
+                });
             });
         });
     });
@@ -109,11 +113,14 @@ function createTestUsers(db, count = 10000) {
 // POST /nodejs/api/auth/get-user-token - Authenticate user
 app.post('/nodejs/api/auth/get-user-token', async (req, res) => {
     try {
-        const { username, hashedPassword } = req.body;
+        const { UserName, HashedPassword } = req.body;
 
-        const db = new sqlite3.Database(DB_PATH);
-        const user = await getUserByCredentials(db, username, hashedPassword);
-        
+        if (UserName == "no_db")
+            return res.json({success: true, userId: 1, errorMessage: null});
+
+        const db = await initializeDatabase();
+        const user = await getUserByCredentials(db, UserName, HashedPassword);
+
         db.close();
 
         if (user) {
@@ -139,10 +146,10 @@ app.post('/nodejs/api/auth/get-user-token', async (req, res) => {
     }
 });
 
-// GET /api/auth/create-db - Create test database with 10000 users
+// GET /nodejs/api/auth/create-db - Create test database with 10000 users
 app.get('/nodejs/api/auth/create-db', async (req, res) => {
     try {
-        const db = new sqlite3.Database(DB_PATH);
+        const db = await initializeDatabase();
         const count = await createTestUsers(db, 10000);
         
         db.close();

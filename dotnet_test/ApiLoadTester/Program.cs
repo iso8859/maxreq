@@ -138,6 +138,12 @@ public class ApiLoadTester
             {
                 testData.UserName = $"user{requestId}@example.com";
                 testData.HashedPassword = ComputeSha256Hash($"password{requestId}");
+                if (requestId == 1)
+                {
+                    Console.WriteLine($"   Sending Request {requestId} to: {final}");
+                    Console.WriteLine($"   Payload: " + JsonSerializer.Serialize(testData, _jsonOptions));
+                }
+
             }
             var json = JsonSerializer.Serialize(testData, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -273,7 +279,7 @@ class Program
 
         // Configuration
         const string dotnetApiUrl = "http://localhost:5000/";
-        const string nodeApiUrl = "http://localhost:80/nodejs/";
+        const string nodeApiUrl = "http://localhost:8080/nodejs/";
         const string rustApiUrl = "http://localhost:8080/";
         const string phpApiUrl = "http://localhost:8080/php/";
         const string pythonApiUrl = "http://localhost:8000/nodejs/";
