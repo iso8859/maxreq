@@ -69,7 +69,8 @@ public class ApiLoadTester
         Console.WriteLine($"   Connection Pool Size: 16");
         Console.WriteLine();
 
-        string final = _apiUrl + "api/auth/create-db";
+        string apiUrl = _apiUrl.Replace("%", ""); // Remove % for initialization call
+        string final = apiUrl + "api/auth/create-db";
         Console.WriteLine($"   Initializing database with: {final}");
         var response = await _httpClient.GetAsync(final);
         var responseBody = await response.Content.ReadAsStringAsync();
@@ -82,7 +83,7 @@ public class ApiLoadTester
         // Create all tasks
         for (int i = 0; i < totalRequests; i++)
         {
-            tasks.Add(ExecuteRequestAsync(semaphore, no_db ? -1 : ((i % 10000) + 1)));
+            tasks.Add(ExecuteRequestAsync(semaphore, i, no_db ? -1 : ((i % 10000) + 1)));
         }
 
         // Wait for all tasks to complete
@@ -119,7 +120,7 @@ public class ApiLoadTester
     }
 
 
-    private async Task<(bool Success, double ResponseTimeMs)> ExecuteRequestAsync(SemaphoreSlim semaphore, int requestId)
+    private async Task<(bool Success, double ResponseTimeMs)> ExecuteRequestAsync(SemaphoreSlim semaphore, int abs, int requestId)
     {
         await semaphore.WaitAsync();
 
@@ -127,7 +128,24 @@ public class ApiLoadTester
         {
             var requestStopwatch = Stopwatch.StartNew();
 
-            string final = _apiUrl + "api/auth/get-user-token";
+            string apiRul = _apiUrl;
+            int start = _apiUrl.IndexOf("%");
+            if (start != -1)
+            {
+                int end = _apiUrl.IndexOf("/", start + 1);
+                if (end != -1)
+                {
+                    string portStr = _apiUrl.Substring(start + 1, end - start - 1);
+                    if (int.TryParse(portStr, out int port))
+                    {
+                        port += abs % 16;
+                        string newApiUrl = _apiUrl.Substring(0, start) + port.ToString() + _apiUrl.Substring(end);
+                        apiRul = newApiUrl;
+                    }
+                }
+            }
+            string final = apiRul + "api/auth/get-user-token";
+            // Console.WriteLine($"   Preparing Request {requestId} to: {final}");
             var testData = new LoginRequest();
             if (requestId == -1)
             {
@@ -141,7 +159,11 @@ public class ApiLoadTester
                 if (requestId == 1)
                 {
                     Console.WriteLine($"   Sending Request {requestId} to: {final}");
-                    Console.WriteLine($"   Payload: " + JsonSerializer.Serialize(testData, _jsonOptions));
+                    Console.WriteLine($"   Payload: " + JsonSerializer.Serialize(testData, _jsonOptions));                    
+                }
+                if (requestId < 16)
+                {
+                    Console.WriteLine($"   Sending Request {requestId} to: {final}");
                 }
 
             }
@@ -280,6 +302,8 @@ class Program
         // Configuration
         const string dotnetApiUrl = "http://localhost:5000/";
         const string nodeApiUrl = "http://localhost:8080/nodejs/";
+        const string nodeApiUrl2 = "http://localhost:8081/nodejs/";
+        const string nodeApiUrl3 = "http://localhost:%3001/nodejs/";
         const string rustApiUrl = "http://localhost:8080/";
         const string phpApiUrl = "http://localhost:8080/php/";
         const string pythonApiUrl = "http://localhost:8000/nodejs/";
@@ -295,6 +319,14 @@ class Program
         if (testFilter == "node" || testFilter == "all")
         {
             await TestApi("Node.js API", nodeApiUrl, totalRequests, maxConcurrency, no_db);
+        }
+        if (testFilter == "node2" || testFilter == "all")
+        {
+            await TestApi("Node.js API", nodeApiUrl2, totalRequests, maxConcurrency, no_db);
+        }
+        if (testFilter == "node3" || testFilter == "all")
+        {
+            await TestApi("Node.js API", nodeApiUrl3, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "rust" || testFilter == "all")
         {
@@ -346,6 +378,7 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine($"❌ {apiName} test failed: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
             Console.WriteLine($"💡 Make sure the API is running at: {apiUrl}");
         }
         finally

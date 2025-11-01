@@ -1,0 +1,39 @@
+# Traefik dynamic configuration for Node.js API
+http:
+  routers:
+    nodejs-api:
+      rule: "PathPrefix(`/`)"
+      service: nodejs-backend
+      entryPoints:
+        - web
+
+  services:
+    nodejs-backend:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3001"
+          - url: "http://127.0.0.1:3002"
+          - url: "http://127.0.0.1:3003"
+          - url: "http://127.0.0.1:3004"
+          - url: "http://127.0.0.1:3005"
+          - url: "http://127.0.0.1:3006"
+          - url: "http://127.0.0.1:3007"
+          - url: "http://127.0.0.1:3008"
+          - url: "http://127.0.0.1:3009"
+          - url: "http://127.0.0.1:3010"
+          - url: "http://127.0.0.1:3011"
+          - url: "http://127.0.0.1:3012"
+          - url: "http://127.0.0.1:3013"
+          - url: "http://127.0.0.1:3014"
+          - url: "http://127.0.0.1:3015"
+          - url: "http://127.0.0.1:3016"
+        
+        healthCheck:
+          path: /nodejshealth
+          interval: 10s
+          timeout: 3s
+        
+        # Enable connection reuse
+        passHostHeader: true
+        responseForwarding:
+          flushInterval: 1ms
