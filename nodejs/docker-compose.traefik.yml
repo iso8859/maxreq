@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik-nodejs
+    restart: unless-stopped
+    ports:
+      - "8081:8081"  # Reverse proxy port
+      - "8082:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik-dynamic.yml:/home/debian/maxreq/maxreq/nodejs/traefik-dynamic.yml:ro
+    network_mode: host
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"

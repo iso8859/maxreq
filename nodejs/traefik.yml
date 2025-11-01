@@ -1,0 +1,33 @@
+# Traefik static configuration
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# API and dashboard configuration
+api:
+  insecure: true
+  dashboard: true
+
+# Entry points configuration
+entryPoints:
+  web:
+    address: ":8081"
+    transport:
+      respondingTimeouts:
+        readTimeout: 10s
+        writeTimeout: 10s
+        idleTimeout: 90s
+
+# Providers configuration
+providers:
+  file:
+    filename: /home/debian/maxreq/maxreq/nodejs/traefik-dynamic.yml
+    watch: true
+
+# Logging
+log:
+  level: WARN
+  
+# Access logs
+accessLog:
+  bufferingSize: 100

@@ -1,0 +1,80 @@
+upstream nodejs_backend {
+    least_conn;
+    
+    # All PM2 instances (ports 3001-3016)
+    server 127.0.0.1:3001;
+    server 127.0.0.1:3002;
+    server 127.0.0.1:3003;
+    server 127.0.0.1:3004;
+    server 127.0.0.1:3005;
+    server 127.0.0.1:3006;
+    server 127.0.0.1:3007;
+    server 127.0.0.1:3008;
+    server 127.0.0.1:3009;
+    server 127.0.0.1:3010;
+    server 127.0.0.1:3011;
+    server 127.0.0.1:3012;
+    server 127.0.0.1:3013;
+    server 127.0.0.1:3014;
+    server 127.0.0.1:3015;
+    server 127.0.0.1:3016;
+    
+    # Keep connections alive to backend - CRITICAL for performance
+    keepalive 256;
+    keepalive_requests 10000;
+    keepalive_timeout 60s;
+}
+
+server {
+    listen 8080 reuseport;
+    listen [::]:8080 reuseport;
+    
+    server_name _;
+    
+    # Disable access logging for better performance
+    access_log off;
+    error_log /var/log/nginx/nodejs-api-error.log warn;
+    
+    # Client optimization
+    client_body_buffer_size 128k;
+    client_max_body_size 10m;
+    client_header_buffer_size 1k;
+    large_client_header_buffers 4 8k;
+    
+    # Timeouts - shorter for API
+    client_body_timeout 12;
+    client_header_timeout 12;
+    send_timeout 10;
+    
+    location / {
+        proxy_pass http://nodejs_backend;
+        
+        # CRITICAL: Enable keepalive to backend
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        
+        # Essential headers only
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        # Disable buffering for small JSON responses
+        proxy_buffering off;
+        proxy_request_buffering off;
+        
+        # Shorter timeouts for API
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 10s;
+        
+        # Don't compress (saves CPU for small JSON)
+        proxy_set_header Accept-Encoding "";
+    }
+    
+    # Health check endpoint
+    location /nginx-health {
+        access_log off;
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+}
