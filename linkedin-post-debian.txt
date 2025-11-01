@@ -1,10 +1,9 @@
 Which Programming Language Delivers the Fastest API Performance?
 
-Rust is 15x faster than Node.js.
-
+Rust is 7.5x faster than Node.js.
 I agree, Rust is not the simplest programming language.
 
-C# is 13x faster than Node.js, and .NET is very accessible.
+C# is 6.3x faster than Node.js, and .NET is very accessible.
 
 I ran all these tests after seeing so many job offers claiming "building a top team to deliver super performant APIs with Python or Node.js".
 
@@ -22,4 +21,6 @@ If you need Python for AI, then go for https://aspire.dev. C# backbone with Pyth
 
 Machine at https://ovhcloud.com, VPS-2, 6 vCore, 12 Gb RAM for 7€/month tax included.
 
-Full source code and setup scrips https://xtware.com/iso8859/maxreq
+Full source code and setup scrips https://github.com/iso8859/maxreq
+
+OVHcloud Octave Klaba David Fowler
