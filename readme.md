@@ -1,4 +1,30 @@
-# Multi Dev Language API Performance Test
+# Which Programming Language Delivers the Fastest API Performance?
+
+**Rust is 7.5x faster than Node.js.**  
+I agree, Rust is not the simplest programming language.
+
+**C# is 6.3x faster than Node.js**, and .NET is very accessible.
+
+I ran all these tests after seeing so many job offers claiming "building a top team to deliver super performant APIs with Python or Node.js".
+
+**Please stop that. This is not true.** Saying that is like running a decathlon with stones in your shoes.
+
+I also spent some time comparing different JVMs, both in Docker and without Docker.
+
+**Comparing Java Native vs Java in Docker => You lose a lot of performance using Docker.**
+
+**Be smart, choose the right stack, and please stop using Python and Node.js for APIs!**
+
+You will save time, achieve better performance, and keep your team happy.
+
+If you need Python for AI, then go for [https://aspire.dev](https://aspire.dev). C# backbone with Python workers.
+
+**Machine:** [OVHcloud](https://ovhcloud.com) VPS-2, 6 vCore, 12 GB RAM for 7€/month tax included.
+
+
+---
+
+## About This Project
 
 In this repository you will find simple implementations of a UserToken API in multiple programming languages.
 
