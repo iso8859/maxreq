@@ -161,10 +161,10 @@ public class ApiLoadTester
                     Console.WriteLine($"   Sending Request {requestId} to: {final}");
                     Console.WriteLine($"   Payload: " + JsonSerializer.Serialize(testData, _jsonOptions));                    
                 }
-                if (requestId < 16)
-                {
-                    Console.WriteLine($"   Sending Request {requestId} to: {final}");
-                }
+                // if (requestId < 16)
+                // {
+                //     Console.WriteLine($"   Sending Request {requestId} to: {final}");
+                // }
 
             }
             var json = JsonSerializer.Serialize(testData, _jsonOptions);
