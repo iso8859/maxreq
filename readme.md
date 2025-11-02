@@ -81,5 +81,7 @@ Client and server are on the same machine, so network latency is not taken into 
 
 # Log
 
+```
 20251102 - SebDeLille - Proposal to improve rust-actix, gain 5700 req/s
 20251102 - Kuurama - C# class to record to gain 1000 req/s 
+```
