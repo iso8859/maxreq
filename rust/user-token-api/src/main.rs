@@ -12,6 +12,10 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tower_http::cors::CorsLayer;
 use tracing::{info, error};
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
+
+type DbPool = Pool<SqliteConnectionManager>;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LoginRequest {
@@ -39,12 +43,15 @@ struct User {
 }
 
 struct AppState {
-    db: Arc<Mutex<Connection>>,
+    db: DbPool,
 }
 
 impl AppState {
     fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        let conn = Connection::open("users.db")?;
+        let cpus = num_cpus::get() as u32;
+        let manager = SqliteConnectionManager::file("users.db");
+        let pool = Pool::builder().max_size(cpus).build(manager)?;
+        let conn = pool.get()?;
         
         // Configure SQLite for better performance and concurrency
         conn.pragma_update(None, "journal_mode", "WAL")?;        // Enable WAL mode for better concurrency
@@ -73,7 +80,7 @@ impl AppState {
         )?;
         
         Ok(AppState {
-            db: Arc::new(Mutex::new(conn)),
+            db: pool,
         })
     }
 
@@ -87,7 +94,7 @@ impl AppState {
             }));
         }
         
-        let conn = self.db.lock().unwrap();
+        let conn = self.db.get().unwrap();
         
         // Use prepare_cached for automatic statement caching
         let mut stmt = conn.prepare_cached(
@@ -112,7 +119,7 @@ impl AppState {
     }
 
     fn create_test_users(&self, count: usize) -> Result<usize, Box<dyn std::error::Error>> {
-        let conn = self.db.lock().unwrap();
+        let conn = self.db.get().unwrap();
         
         // Clear existing users
         conn.execute("DELETE FROM user", [])?;
