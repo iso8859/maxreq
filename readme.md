@@ -21,6 +21,8 @@ If you need Python for AI, then go for [https://aspire.dev](https://aspire.dev).
 
 **Machine:** [OVHcloud](https://ovhcloud.com) VPS-2, 6 vCore, 12 GB RAM for 7€/month tax included.
 
+**Discution** on [LinkedIn](https://www.linkedin.com/posts/remi-thomas-fr_which-programming-language-delivers-the-fastest-activity-7390097194038763520-NhfN?utm_source=share&utm_medium=member_desktop&rcm=ACoAABjxEQ4BQrLcBafmBr6SUljEDYOCSO15Zs0)
+
 
 ---
 
