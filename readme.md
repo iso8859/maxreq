@@ -21,7 +21,7 @@ You will save time, achieve better performance, and keep your team happy.
 
 If you need Python for AI, then go for [https://aspire.dev](https://aspire.dev). C# backbone with Python workers.
 
-**Machine:** [OVHcloud](https://ovhcloud.com) VPS-2, 6 vCore, 12 GB RAM for 7€/month tax included.
+**Machine:** [OVHcloud](https://ovhcloud.com) VPS-2, 6 vCore, 12 GB RAM, unlimited traffic for 7€/month tax included.
 
 **Discution** on [LinkedIn](https://www.linkedin.com/posts/remi-thomas-fr_which-programming-language-delivers-the-fastest-activity-7390097194038763520-NhfN?utm_source=share&utm_medium=member_desktop&rcm=ACoAABjxEQ4BQrLcBafmBr6SUljEDYOCSO15Zs0)
 
