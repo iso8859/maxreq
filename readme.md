@@ -1,5 +1,7 @@
 # Which Programming Language Delivers the Fastest API Performance?
 
+![Performance Comparison Chart Debian](illustration-debian.png)
+
 **Rust is 9.8x faster than Node.js.**  
 I agree, Rust is not the simplest programming language.
 
@@ -60,9 +62,6 @@ I keep the best result after 5 runs.
 
 On Windows 10
 ![Performance Comparison Chart Windows](illustration.png)
-
-On Debian 6.1
-![Performance Comparison Chart Debian](illustration-debian.png)
 
 # Conclusion
 
