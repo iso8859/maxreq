@@ -40,6 +40,29 @@ For Java minimal API is faster than Spring Boot.
 
 For Typescript or Javascript, Bun is faster than Node.js. Bun sqlite implementation is really optimized.
 
+## API Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant SQLite
+    
+    Client->>API: POST /api/auth/get-user-token
+    Note over Client,API: JSON: {"UserName": "user@example.com", "HashedPassword": "sha256hash"}
+    
+    API->>SQLite: SELECT id FROM users WHERE mail = ? AND password = ?
+    SQLite-->>API: Return user_id or null
+    
+    alt User found
+        API-->>Client: 200 OK {"user_id": 12345}
+    else User not found
+        API-->>Client: 401 Unauthorized {"message": "Invalid credentials"}
+    end
+    
+    Note over Client,API: Special case: UserName="no_db" returns user_id=12345 without DB query
+```
+
 # Test client
 
 A test client is provided in C# .NET 9 in directory dotnet_test. Look at readme.md in this directory for instructions.
