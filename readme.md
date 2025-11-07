@@ -83,7 +83,8 @@ Result below is from my machine under Windows 10, AMD Ryzen 7 2700X, 32GB RAM, S
 
 I keep the best result after 5 runs.
 
-On Windows 10
+**On Windows 10**
+
 ![Performance Comparison Chart Windows](illustration.png)
 
 # Conclusion
