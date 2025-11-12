@@ -8,13 +8,13 @@ public class User
     public long Id { get; set; }
 }
 
-public record LoginRequest
+public struct LoginRequest
 {
-    public string Username { get; set; } = string.Empty;
-    public string HashedPassword { get; set; } = string.Empty;
+    public string Username { get; set; }
+    public string HashedPassword { get; set; }
 }
 
-public record LoginResponse
+public struct LoginResponse
 {
     public bool Success { get; set; }
     public long? UserId { get; set; }

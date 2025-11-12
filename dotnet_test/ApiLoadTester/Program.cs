@@ -18,13 +18,13 @@ public class LoadTestResult
     public List<double> ResponseTimes { get; set; } = new();
 }
 
-public class LoginRequest
+public struct LoginRequest
 {
-    public string UserName { get; set; } = string.Empty;
-    public string HashedPassword { get; set; } = string.Empty;
+    public string UserName { get; set; }
+    public string HashedPassword { get; set; }
 }
 
-public class LoginResponse
+public struct LoginResponse
 {
     public bool Success { get; set; }
     public long? UserId { get; set; }
@@ -296,7 +296,7 @@ class Program
         if (args.Length > 3)
             no_db = args[3].ToLower() == "no_db";
 
-        Console.WriteLine($"Configuration: {totalRequests:N0} requests, {maxConcurrency} concurrent connections");
+        Console.WriteLine($"Configuration: {totalRequests:N0} requests, {maxConcurrency} concurrent connections for {testFilter} tests");
         Console.WriteLine();
 
         // Configuration
