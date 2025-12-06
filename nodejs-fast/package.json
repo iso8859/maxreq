@@ -1,0 +1,25 @@
+{
+  "name": "nodejs-fast",
+  "version": "1.0.0",
+  "description": "Simple Node.js API for user authentication using SQLite database",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "authentication",
+    "sqlite",
+    "express",
+    "nodejs"
+  ],
+  "author": "David Grelaud",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "=12.5.0",
+    "uWebSockets.js": "=20.55.0"
+  }
+}
