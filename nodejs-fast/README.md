@@ -79,10 +79,12 @@ curl http://localhost:8080/nodejshealth
 
 I used `wrk` to test the endpoints.
 
-| Endpoint                      | Node.js 24 RPS | Rust Actix RPS        |
-|-------------------------------|----------------|-----------------------|
-| GET /health                   | 386533         | 382089                |
-| POST /api/auth/get-user-token | 232290         | 298869 (with errors?) |
+| Technology           | GET /health       | POST /api/auth/get-user-token |
+|----------------------|------------------:|------------------------------:|
+| NodeJs 24.11 Fast    |        386533 RPS |                    232290 RPS |
+| Rust Actix           |        382089 RPS |    (with errors)   298869 RPS |
+| NodeJs 24.11 Express |         96674 RPS |                     30934 RPS |
+| NodeJs 22.21 Express |         46977 RPS |                     21670 RPS |
 
 
 ### Test Machine Specifications
