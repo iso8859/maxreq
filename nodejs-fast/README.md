@@ -24,6 +24,13 @@ As we want to maximize the RAW performance, here are the best choices:
 
 ## Quick Start
 
+Setup ultimate-express project
+```bash
+npm install ultimate-express
+npm install better-sqlite3
+```
+
+
 ```bash
 # Must be NodeJS 24+
 node index.js

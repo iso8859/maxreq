@@ -19,7 +19,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "better-sqlite3": "=12.5.0",
-    "uWebSockets.js": "=20.55.0"
+    "better-sqlite3": "^12.5.0",
+    "ultimate-express": "^2.0.13",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.55.0"
   }
 }
