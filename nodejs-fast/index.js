@@ -157,6 +157,18 @@ if (cluster.isMaster) {
 
     // Create uWebSockets.js app
     uWS.App({})
+        .get('/', (res, req) => {
+            sendJSON(res, {
+                status: 'OK',
+                message: 'Node.js Fast User Token API',
+                worker: process.pid,
+                endpoints: [
+                    'GET /nodejshealth',
+                    'GET /nodejs/api/auth/create-db',
+                    'POST /nodejs/api/auth/get-user-token'
+                ]
+            });
+        })
         .get('/nodejshealth', (res, req) => {
             sendJSON(res, {
                 status: 'OK',
