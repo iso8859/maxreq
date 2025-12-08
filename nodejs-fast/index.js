@@ -36,8 +36,13 @@ if (cluster.isMaster) {
         // Follow better-sqlite3 API (faster and same as Bun.js)
         const db = new sqlite3(DB_PATH, {
             // verbose : console.log,
+            timeout: 5000, // Wait up to 5 seconds for locks to clear
         });
         console.log(`Worker ${process.pid}: Connected to SQLite database`);
+        
+        // Set busy timeout to handle concurrent access
+        db.pragma('busy_timeout = 5000');
+        
         // Enable WAL mode:
         // - significantly faster.
         // - provides more concurrency as readers do not block writers and a writer does not block readers. Reading and writing can proceed concurrently.
