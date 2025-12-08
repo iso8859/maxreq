@@ -1,4 +1,4 @@
-#include "src/App.h"
+#include "uWebSockets/App.h"
 #include <string>
 #include <string_view>
 #include <iostream>
@@ -8,8 +8,7 @@
 #include <vector>
 #include <mutex>
 
-// SQLite
-#include <sqlite3.h>
+#include "sqlite/sqlite3.h"
 
 // SHA256 - Using OpenSSL or Windows CryptoAPI
 #ifdef _WIN32
