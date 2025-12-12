@@ -36,7 +36,7 @@ server {
     }
     
     location ~ \.php$ {
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
@@ -64,8 +64,8 @@ sudo nginx -t
 
 # Start/restart services
 echo "Starting PHP-FPM..."
-sudo systemctl restart php8.2-fpm
-sudo systemctl enable php8.2-fpm
+sudo systemctl restart php8.4-fpm
+sudo systemctl enable php8.4-fpm
 
 echo "Starting Nginx..."
 sudo systemctl restart nginx
@@ -73,14 +73,14 @@ sudo systemctl enable nginx
 
 # Get number of cores and PHP-FPM workers
 NUM_CORES=$(nproc)
-FPM_WORKERS=$(sudo grep -E "^pm\.(start_servers|max_children)" /etc/php/8.2/fpm/pool.d/www.conf | awk '{print $3}')
+FPM_WORKERS=$(sudo grep -E "^pm\.(start_servers|max_children)" /etc/php/8.4/fpm/pool.d/www.conf | awk '{print $3}')
 
 echo "✅ Server started successfully!"
 echo "📍 URL: http://localhost:$PORT"
 echo "⚙️  CPU cores: $NUM_CORES"
 echo "� PHP-FPM workers configured:"
-sudo grep -E "^pm\." /etc/php/8.2/fpm/pool.d/www.conf | sed 's/^/   /'
+sudo grep -E "^pm\." /etc/php/8.4/fpm/pool.d/www.conf | sed 's/^/   /'
 echo ""
 echo "� Service status:"
-sudo systemctl status php8.2-fpm --no-pager -l | head -5
+sudo systemctl status php8.4-fpm --no-pager -l | head -5
 sudo systemctl status nginx --no-pager -l | head -5

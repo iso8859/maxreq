@@ -69,15 +69,15 @@ header('Access-Control-Allow-Headers: Content-Type, X-Request-Id');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
-    // log_line('DEBUG', 'Handled CORS preflight');
+    log_line('DEBUG', 'Handled CORS preflight');
     exit();
 }
 
-// log_line('INFO', 'Request start', array(
-//     'method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '',
-//     'uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
-//     'client' => isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '',
-// ));
+log_line('INFO', 'Request start', array(
+    'method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '',
+    'uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
+    'client' => isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '',
+));
 
 // ====== Advanced Database Connection Pool with Prepared Statement Cache ======
 class DatabasePool {
@@ -93,7 +93,7 @@ class DatabasePool {
             $this->connections[$i] = $this->createConnection();
             $this->connectionInUse[$i] = false;
         }
-        // log_line('INFO', 'Database pool initialized', ['max_connections' => $this->maxConnections]);
+        log_line('INFO', 'Database pool initialized', ['max_connections' => $this->maxConnections]);
     }
     
     public static function getInstance() {
@@ -121,7 +121,7 @@ class DatabasePool {
             
             return $pdo;
         } catch (PDOException $e) {
-            // log_line('CRITICAL', 'Database connection failed', ['error' => $e->getMessage()]);
+            log_line('CRITICAL', 'Database connection failed', ['error' => $e->getMessage()]);
             throw $e;
         }
     }
@@ -136,7 +136,7 @@ class DatabasePool {
         }
         
         // All connections in use, create temporary connection
-        // log_line('WARN', 'All connections in use, creating temporary connection');
+        log_line('WARN', 'All connections in use, creating temporary connection');
         return ['pdo' => $this->createConnection(), 'id' => -1];
     }
     
@@ -153,7 +153,7 @@ class DatabasePool {
         
         if (!isset($this->preparedStatements[$stmtKey])) {
             $this->preparedStatements[$stmtKey] = $connectionInfo['pdo']->prepare($sql);
-            // log_line('DEBUG', 'Prepared statement cached', ['key' => $stmtKey]);
+            log_line('DEBUG', 'Prepared statement cached', ['key' => $stmtKey]);
         }
         
         return $this->preparedStatements[$stmtKey];
@@ -198,29 +198,29 @@ try {
         default:
             http_response_code(404);
             echo json_encode(['error' => 'Not Found', 'path'=>$path]);
-            // log_line('WARN', 'Route not found', ['path'=>$path]);
+            log_line('WARN', 'Route not found', ['path'=>$path]);
             break;
     }
 } catch (Throwable $t) {
-    // log_line('CRITICAL', 'Unhandled routing exception', ['msg'=>$t->getMessage()]);
+    log_line('CRITICAL', 'Unhandled routing exception', ['msg'=>$t->getMessage()]);
     http_response_code(500);
     echo json_encode(['error'=>'Internal server error']);
 }
 
 // ====== Handlers ======
 function handleHealth() {
-    // log_line('DEBUG', 'Health check');
+    log_line('DEBUG', 'Health check');
     echo json_encode('UserTokenApi PHP server is running');
 }
 
 function handleAuth() {
     $raw = file_get_contents('php://input');
-    // log_line('DEBUG', 'Auth request raw body', ['len'=>strlen($raw)]);
+    log_line('DEBUG', 'Auth request raw body', ['len'=>strlen($raw)]);
     try {
         $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
     } catch (Throwable $e) {
         http_response_code(400);
-        // log_line('WARN', 'Invalid JSON', ['error'=>$e->getMessage()]);
+        log_line('WARN', 'Invalid JSON', ['error'=>$e->getMessage()]);
         echo json_encode(['Success'=>false,'UserId'=>null,'ErrorMessage'=>'Invalid JSON input']);
         return;
     }
@@ -230,7 +230,7 @@ function handleAuth() {
 
     if ($username === '' || $hashedPassword === '') {
         http_response_code(400);
-        // log_line('WARN', 'Missing credentials');
+        log_line('WARN', 'Missing credentials');
         echo json_encode(['Success'=>false,'UserId'=>null,'ErrorMessage'=>'Username and HashedPassword are required']);
         return;
     }
@@ -249,20 +249,20 @@ function handleAuth() {
         $user = $stmt->fetch();
 
         if (!$user) {
-            // log_line('INFO', 'User not found', ['user'=>$username]);
+            log_line('INFO', 'User not found', ['user'=>$username]);
             echo json_encode(['Success'=>false,'UserId'=>null,'ErrorMessage'=>'User not found']);
             return;
         }
 
         if (hash_equals($user['hashed_password'], $hashedPassword)) {
-            // log_line('INFO', 'Auth success', ['user'=>$username]);
+            log_line('INFO', 'Auth success', ['user'=>$username]);
             echo json_encode(['Success'=>true,'UserId'=>(int)$user['id'],'ErrorMessage'=>null]);
         } else {
-            // log_line('INFO', 'Auth failed (password mismatch)', ['user'=>$username]);
+            log_line('INFO', 'Auth failed (password mismatch)', ['user'=>$username]);
             echo json_encode(['Success'=>false,'UserId'=>null,'ErrorMessage'=>'Invalid password']);
         }
     } catch (Throwable $e) {
-        // log_line('ERROR', 'Auth handler exception', ['error'=>$e->getMessage()]);
+        log_line('ERROR', 'Auth handler exception', ['error'=>$e->getMessage()]);
         http_response_code(500);
         echo json_encode(['Success'=>false,'UserId'=>null,'ErrorMessage'=>'Internal server error']);
     } finally {
@@ -274,7 +274,7 @@ function handleAuth() {
 
 function handleSetupDatabase($count) {
     $t0 = microtime(true);
-    // log_line('INFO', 'Seeding start', ['count'=>$count]);
+    log_line('INFO', 'Seeding start', ['count'=>$count]);
     $connectionInfo = null;
     try {
         $connectionInfo = getDatabase();
@@ -298,7 +298,7 @@ function handleSetupDatabase($count) {
             $stmt->execute(["user{$i}@example.com", $hashedPassword]);
             if ($i % 1000 === 0) {
                 $pdo->commit();
-                // log_line('DEBUG', 'Batch committed', ['inserted'=>$i]);
+                log_line('DEBUG', 'Batch committed', ['inserted'=>$i]);
                 if ($i < $count) $pdo->beginTransaction();
             }
         }
@@ -306,11 +306,11 @@ function handleSetupDatabase($count) {
         
         
         $elapsedMs = round((microtime(true)-$t0)*1000,2);
-        // log_line('INFO', 'Seeding complete', ['inserted'=>$count,'ms'=>$elapsedMs]);
+        log_line('INFO', 'Seeding complete', ['inserted'=>$count,'ms'=>$elapsedMs]);
         echo json_encode(["Success"=>true, "Inserted"=>$count, "DurationMs"=>$elapsedMs]);
     } catch (Throwable $e) {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-        // log_line('CRITICAL', 'Seeding failed', ['error'=>$e->getMessage()]);
+        log_line('CRITICAL', 'Seeding failed', ['error'=>$e->getMessage()]);
         http_response_code(500);
         echo json_encode(['Success'=>false, 'ErrorMessage'=>'Database setup failed']);
     } finally {
