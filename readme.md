@@ -28,50 +28,61 @@ I tried to get maximum performance for each implementation, using best practices
 | node-fast cluster       | 24364  | Rely on uWebSockets C++ lib                                                                  |
 | C++ uWebSockets         | 34404  | uWebSockets library make it possible. Without it very difficult to get good performances     |
 
+## Take care about the processor, the operating system and Docker
+
+The processor and the OS are key factors about performances. I did some test on an old Intel i5 I have at home, same Debian version but very different results.
+- C++ and Node.js get almost the same results
+- Java get as low as 100 reqs/second, don't know why and didn't find how to improve it.
+
+There is good chances Java use Processor Extensions like MMX, SSE or AVX.
+
+I also got diffrent results with Debian 12 and 13. And very different ranking under Windows.
+
+Docker is a performance killer, specialy with Java.
+
 ## Conclusions
 
-Good performance is both optimized library, most of the time written in C and a fast runtime.
+Good performance is both optimized library, most of the time written in C and a fast runtime. Find some platform pros and cons bellow and a reflexion about monolithic.
 
 
-![Performance Comparison Chart Debian](illustration-debian.png)
+![Performance Comparison Chart Debian](illustration-debian-20251220.png)
 
-**Rust is 9.8x faster than Node.js.**  
-I agree, Rust is not the simplest programming language.
+**C++ is the fastest**
+No surprise here. I'm a senior C++ dev and wouldn't achieve these performances by myself.
+uWebSockets library did the game.
+C++ is not the dev platform I would recommand for API, Node or C# are better options.
 
-**C# is 7.5x faster than Node.js**, and .NET is very accessible.
+**Node.js with uWebSockets library**
+Node.js is making an impressive comeback thanks to the expertise of [David Grelaud](https://www.linkedin.com/in/david-grelaud-247974b/).  
+This can be explained by the fact that two C++ libraries are being used directly from the JavaScript code: uWebSockets.js, which is based on the C++ uWebSockets library, and the same goes for SQLite. The JavaScript code simply acts as a relay to the C++ code — and it works remarkably well.
 
-I ran all these tests after seeing so many job offers claiming "building a top team to deliver super performant APIs with Python or Node.js".
+**Rust**  
+It was a surprise to see these bad performances with Rust. If one day some Rust dev
+do the same socket implementation as we have in uWebSockets the performances will rise.
 
-**Please stop that. This is not true.** Saying that is like running a decathlon with stones in your shoes.
+**dotnet C#**
+This is the platform I advise to use for big projects that need performances.
+The big advantage about C# is it runs everywhere. One code to target almost all devices.
 
-I also spent some time comparing different JVMs, both in Docker and without Docker.
+**Java**
+The big problem with Java is the JVM you use and how it behave on the hardware you use.
+This is also a little bit more complex to use than C# or Javascript. Create a good pom.xml file need a good expertise. Build time is one of the slower.
 
-**Comparing Java Native vs Java in Docker => You lose a lot of performance using Docker.**
+**Go**
+A good option that create one binary.
 
-**Be smart, choose the right stack, and please stop using Python and Node.js for APIs!**
+**PHP**
+The deployment is quite complex and you can spend a lot of time to find why it doesn't work. Performance is not good.
 
-You will save time, achieve better performance, and keep your team happy.
+**Python**
+Don't use it if you need performance. You can use it in microservices with a front in another technoloy. Deployment is also sometime problematic if you need to mix versions.
 
 If you need Python for AI, then go for [https://aspire.dev](https://aspire.dev). C# backbone with Python workers.
 
-**Machine:** [OVHcloud](https://ovhcloud.com) VPS-2, 6 vCore, 12 GB RAM, unlimited traffic for 7€/month tax included.
-
-**Discution** on [LinkedIn](https://www.linkedin.com/posts/remi-thomas-fr_which-programming-language-delivers-the-fastest-activity-7390097194038763520-NhfN?utm_source=share&utm_medium=member_desktop&rcm=ACoAABjxEQ4BQrLcBafmBr6SUljEDYOCSO15Zs0)
-
-
----
-
-## About This Project
-
-In this repository you will find simple implementations of a UserToken API in multiple programming languages.
-
-The objective is to get the fastest response for each technology.
-
-We can get better performance by optimizing the code, or choosing the right runtime. 
-
-For Java minimal API is faster than Spring Boot.
-
-For Typescript or Javascript, Bun is faster than Node.js. Bun sqlite implementation is really optimized.
+## Monoprocess vs Multiprocess
+Monoprocess have a good advantage about sharing or caching infos. You don't need Redis to cache informations between threads. This is performance and price advantage.
+- Monoprocess are C++, Rust, Java, C#, Go
+- Multi process are Node, Php, Python
 
 ## API Flow
 
@@ -96,38 +107,13 @@ sequenceDiagram
     Note over Client,API: Special case: UserName="no_db" returns user_id=12345 without DB query
 ```
 
-# Test client
-
-A test client is provided in C# .NET 9 in directory dotnet_test. Look at readme.md in this directory for instructions.
-
-# Check if everything is working
-
-To be sure api calls are real I added some trace in the console that display userId to be sure we get a real userId from the database.
-
 # You want to improve ?
 
-This project is open to any improvement, please fork and create a pull request.
+This project is open to any improvement, please fork and create a pull request in a new branch.
 
-You should keep the same API, same database (sqlite), same data (10000 users) and same test procedure (100000 requests, 16 concurrent clients).
+You should keep the same API, same database (sqlite), same data (10000 users). I'll run the tests on the same hardware.
 
 Please test on your machine the current version and compare your improvement. Please commmit only if you get really better performance.
-
-Result below is from my machine under Windows 10, AMD Ryzen 7 2700X, 32GB RAM, SSD NVMe.
-
-I keep the best result after 5 runs.
-
-**On Windows 10**
-
-![Performance Comparison Chart Windows](illustration.png)
-
-# Conclusion
-
-The Debian tests are the most interresting because we do not put production on Windows 10. 
-
-**We can observe a real difference between the two platforms.**
-Results are more expected on Debian.
-
-I didn't tried C++ on Debian because C++ is too complex today to start a new project and it's very tricky and time consuming to obtain good results.
 
 # License
 
