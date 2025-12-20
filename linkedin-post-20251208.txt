@@ -1,0 +1,17 @@
+Serveur d'API : quelle techno choisir ?
+
+Après avoir vu des projets "API hautes performance en Node" j'avais décidé de comparer les stacks les plus courantes pour comparer les I/O. En effet dans mon ressenti personnel Node, Python, PHP ne sont pas des foudres de performance, et donc l'accroche du projet sonnait faut.
+Il existe déjà de nombreux benchmark sur la performance en "CPU" pur et dur avec des résultats assez prévisibles : la compilation fait la différence.
+J'ai décidé de me concentrer sur le mot API = serveur socket en HTTP.
+Comment se comportent les stacks au niveau I/O ?
+J'ai donc imaginé un test assez basique (et non pas en BASIC) avec une simulation d'authentification avec un POST, une requête Sqlite et la réponse.
+
+Je vais tout de suite aller à la conclusion : le grand gagnant et C++
+Au vu du graphique ci-dessous on voit Node.js faire une remontée impressionnante grâce à l'expertise de David Grelaud.
+Cela s'explique car on utilise deux bibliothèques C++ directement depuis le code Javascript : uWebSockets.js qui s'appuie sur uWebSockets en C++. Pareil pour Sqlite. Le code Javascript ne fait que passer les plats vers du code C++ et on peut dire que cela fonctionne très bien.
+Pour avoir un élément de comparaison j'ai écrit la version pure C++ qui s'appuie aussi sur uWebSockets. On gagne mais de très peu.
+
+Donc sans besoin de traitement CPU lourd, Node.js est très smart pour faire des API qui passent les plats : requêtes SQL, Redis, appel d'autres API...
+
+Comme la mise à jour de ma Debian a chamboulé toutes mes mesures précédentes je suis bon pour retester les autres stacks. Arrivent Java, Go, PHP, Python... dans les prochains jours.
+Le projet est toujours ici https://lnkd.in/euVVsKT9
