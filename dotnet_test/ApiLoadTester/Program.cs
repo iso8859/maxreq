@@ -145,7 +145,7 @@ public class ApiLoadTester
                 }
             }
             string final = apiRul + "api/auth/get-user-token";
-            // Console.WriteLine($"   Preparing Request {requestId} to: {final}");
+            //Console.WriteLine($"   Preparing Request {requestId} to: {final}");
             var testData = new LoginRequest();
             if (requestId == -1)
             {
@@ -306,6 +306,7 @@ class Program
         const string nodeApiUrl3 = "http://localhost:%3001/nodejs/";
         const string rustApiUrl = "http://localhost:8080/";
         const string phpApiUrl = "http://localhost:8080/php/";
+        const string frankenPhpApiUrl = "http://localhost:80/php/";
         const string pythonApiUrl = "http://localhost:8000/nodejs/";
         const string javaApiUrl = "http://localhost:6000/";
         const string cppApiUrl = "http://localhost:8081/";
@@ -335,6 +336,10 @@ class Program
         if (testFilter == "php" || testFilter == "all")
         {
             await TestApi("PHP API", phpApiUrl, totalRequests, maxConcurrency, no_db);
+        }
+        if (testFilter == "fphp" || testFilter == "all")
+        {
+            await TestApi("Franken PHP API", frankenPhpApiUrl, totalRequests, maxConcurrency, no_db);
         }
         if (testFilter == "python" || testFilter == "all")
         {
