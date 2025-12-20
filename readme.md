@@ -1,5 +1,38 @@
 # Which Programming Language Delivers the Fastest API Performance?
 
+There is plenty of benchmarks on the web. I wanted to have some metrics about a simple API doing a database query to see real world performance. This is I/O metrics, not CPU metrics.
+
+This project is also a good way to compare different programming languages, runtimes, and frameworks.
+
+I will compare monolithic vs microservices architecture and show that monolithic is often faster and simpler to maintain and deploy.
+
+## Project big picture
+
+Each implementation is a simple API that receives a POST request with a username and hashed password, queries a SQLite database to find the user ID, and returns the user ID in the response.
+
+I tried to get maximum performance for each implementation, using best practices and optimized libraries.
+
+## Tested Implementations
+| Dev platform            | req/s  | Remarks                                                                                      |
+|-------------------------|--------|----------------------------------------------------------------------------------------------|
+| node PM2                | 3823   | Pure node performance with few C++ lib behind                                                |
+| python unicorn          | 4192   | Pure Python, no special optimisations                                                        |
+| Java Spring Temurin     | 6721   | Java VM is very sensitive. With some VM I got 100 req/s. pom file are complex                |
+| php fpm nginx           | 8010   | Need Apache or Nginx                                                                         |
+| Java mini Temurin       | 10993  | Java VM is very sensitive. With some VM I got 100 req/s. pom file are complex                |
+| go                      | 12271  | Easy to build, big exe                                                                       |
+| C# 10.0 controller      | 14465  | The best compromise for code simplicity, maintenance, and performance                        |
+| rust tokio              | 17910  | Easy to build, big exe                                                                       |
+| C# 10.0 minimal API     | 18140  | As simple as Python                                                                          |
+| rust actix              | 23701  | Easy to build, big exe                                                                       |
+| node-fast cluster       | 24364  | Rely on uWebSockets C++ lib                                                                  |
+| C++ uWebSockets         | 34404  | uWebSockets library make it possible. Without it very difficult to get good performances     |
+
+## Conclusions
+
+Good performance is both optimized library, most of the time written in C and a fast runtime.
+
+
 ![Performance Comparison Chart Debian](illustration-debian.png)
 
 **Rust is 9.8x faster than Node.js.**  
