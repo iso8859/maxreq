@@ -45,7 +45,7 @@ Docker is a performance killer, especially with Java.
 Good performance requires both optimized libraries, most of the time written in C, and a fast runtime. Find some platform pros and cons below and a reflection about monolithic architecture.
 
 
-![Performance Comparison Chart Debian](illustration-debian-20251220.png)
+![Performance Comparison Chart Debian](illustration-debian-20260103.png)
 
 **C++ is the fastest**
 No surprise here. I'm a senior C++ developer and wouldn't achieve this performance by myself.
