@@ -1,0 +1,52 @@
+Which Programming Language Delivers the Fastest API Performance?
+
+I benchmarked 12 different implementations of the same API (POST request with database query) to measure real-world I/O performance. Here are the results:
+
+📊 Performance Rankings (requests/second):
+• Node.js PM2: 3,823
+• Python Unicorn: 4,192
+• Java Spring: 6,721
+• PHP-FPM: 8,010
+• Java Minimal: 10,993
+• Go: 12,271
+• C# Controller: 14,465
+• Rust Tokio: 17,910
+• C# Minimal API: 18,140
+• Rust Actix: 23,701
+• Node.js (uWebSockets): 24,364
+• C++ (uWebSockets): 34,404
+
+Key Findings:
+
+C++ is 9x faster than Node.js (traditional setup) and 8x faster than Python. As a senior C++ developer, I must acknowledge that the uWebSockets library made this performance possible—I wouldn't achieve this level by myself.
+
+C# is 7.5x faster than Node.js and offers the best compromise between code simplicity, maintenance, and performance. It runs everywhere with one codebase.
+
+Rust showed surprisingly poor results compared to expectations. If someone implements the same socket optimization as uWebSockets, performance will improve significantly.
+
+Node.js with uWebSockets library (thanks to David Grelaud's expertise) achieves near-Rust performance by leveraging C++ libraries directly from JavaScript code.
+
+Important Considerations:
+
+The processor and OS matter significantly. I got very different results between Debian 12/13 and Windows, and between AMD and Intel processors.
+
+Docker is a performance killer, especially with Java.
+
+Monoprocess platforms (C++, Rust, Java, C#, Go) have an advantage: no need for Redis to cache information between threads—better performance and lower costs.
+
+My Recommendations:
+
+For large projects needing performance: C# (.NET)
+For maximum performance: C++ with uWebSockets (but not recommended for APIs due to complexity)
+For simplicity with good performance: Node.js or C#
+Avoid for performance-critical APIs: Python and PHP
+
+If you need Python for AI, consider https://aspire.dev: C# backbone with Python workers.
+
+Test Environment: OVHcloud VPS-2, 6 vCore, 12 GB RAM, Debian, SQLite database with 10,000 users.
+
+The full benchmark code and detailed results are available on my GitHub repository.
+
+Stop building "high-performance APIs" with Python. Choose the right stack, save time, achieve better performance, and keep your team happy.
+
+#SoftwareDevelopment #Performance #Programming #API #Benchmarking #CSharp #CPlusPlus #Rust #Golang #NodeJS #Python #Java

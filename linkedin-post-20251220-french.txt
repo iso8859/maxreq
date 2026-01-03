@@ -1,0 +1,52 @@
+Quel langage de programmation offre les meilleures performances pour une API ?
+
+J'ai réalisé un benchmark de 12 implémentations différentes de la même API (requête POST avec interrogation de base de données) pour mesurer les performances I/O en conditions réelles. Voici les résultats :
+
+📊 Classement des performances (requêtes/seconde) :
+• Node.js PM2 : 3 823
+• Python Unicorn : 4 192
+• Java Spring : 6 721
+• PHP-FPM : 8 010
+• Java Minimal : 10 993
+• Go : 12 271
+• C# Controller : 14 465
+• Rust Tokio : 17 910
+• C# API Minimale : 18 140
+• Rust Actix : 23 701
+• Node.js (uWebSockets) : 24 364
+• C++ (uWebSockets) : 34 404
+
+Conclusions principales :
+
+Le C++ est 9x plus rapide que Node.js (configuration traditionnelle) et 8x plus rapide que Python. En tant que développeur C++ senior, je dois reconnaître que la bibliothèque uWebSockets a rendu ces performances possibles—je n'aurais jamais atteint ce niveau par moi-même.
+
+Le C# est 7,5x plus rapide que Node.js et offre le meilleur compromis entre simplicité du code, maintenance et performance. Il fonctionne partout avec une seule base de code.
+
+Rust a montré des résultats étonnamment faibles par rapport aux attentes. Si quelqu'un implémente la même optimisation de sockets qu'uWebSockets, les performances s'amélioreront considérablement.
+
+Node.js avec la bibliothèque uWebSockets (grâce à l'expertise de David Grelaud) atteint des performances proches de Rust en exploitant directement des bibliothèques C++ depuis le code JavaScript.
+
+Points importants à considérer :
+
+Le processeur et l'OS ont un impact significatif. J'ai obtenu des résultats très différents entre Debian 12/13 et Windows, et entre les processeurs AMD et Intel.
+
+Docker est un tueur de performances, particulièrement avec Java.
+
+Les plateformes monoprocessus (C++, Rust, Java, C#, Go) ont un avantage : pas besoin de Redis pour mettre en cache des informations entre threads—meilleures performances et coûts réduits.
+
+Mes recommandations :
+
+Pour les grands projets nécessitant de la performance : C# (.NET)
+Pour la performance maximale : C++ avec uWebSockets (mais pas recommandé pour les APIs en raison de la complexité)
+Pour la simplicité avec de bonnes performances : Node.js ou C#
+À éviter pour les APIs critiques en performance : Python et PHP
+
+Si vous avez besoin de Python pour l'IA, considérez https://aspire.dev : une base C# avec des workers Python.
+
+Environnement de test : OVHcloud VPS-2, 6 vCore, 12 GB RAM, Debian, base de données SQLite avec 10 000 utilisateurs.
+
+Le code complet du benchmark et les résultats détaillés sont disponibles sur mon dépôt GitHub.
+
+Arrêtez de construire des "APIs haute performance" avec Pytho. Choisissez la bonne pile technologique, gagnez du temps, obtenez de meilleures performances et gardez votre équipe heureuse.
+
+#DéveloppementLogiciel #Performance #Programmation #API #Benchmarking #CSharp #CPlusPlus #Rust #Golang #NodeJS #Python #Java
