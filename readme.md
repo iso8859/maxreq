@@ -20,11 +20,13 @@ I tried to get maximum performance for each implementation, using best practices
 | Java mini Temurin       | 10993  | Java VM is very sensitive. With some VMs I got 100 req/s. pom files are complex              |
 | go                      | 12271  | Easy to build, big exe                                                                       |
 | C# 10.0 controller      | 14465  | The best compromise for code simplicity, maintenance, and performance                        |
-| rust tokio              | 17910  | Easy to build, big exe                                                                       |
+| rust tokio              | 18105  | Easy to build, big exe                                                                       |
 | C# 10.0 minimal API     | 18140  | As simple as Python                                                                          |
 | rust actix              | 23701  | Easy to build, big exe                                                                       |
 | node-fast cluster       | 24364  | Rely on uWebSockets C++ lib                                                                  |
+| rust khttp              | 31610  | Easy to build, big exe                                                                       |
 | C++ uWebSockets         | 34404  | uWebSockets library makes it possible. Without it, very difficult to get good performance    |
+
 
 ## Take Care About the Processor, Operating System, and Docker
 
@@ -55,8 +57,7 @@ Node.js is making an impressive comeback thanks to the expertise of [David Grela
 This can be explained by the fact that two C++ libraries are being used directly from the JavaScript code: uWebSockets.js, which is based on the C++ uWebSockets library, and the same goes for SQLite. The JavaScript code simply acts as a relay to the C++ code — and it works remarkably well.
 
 **Rust**  
-It was a surprise to see this poor performance with Rust. If one day some Rust developer
-does the same socket implementation as we have in uWebSockets, the performance will improve.
+Rust shows impressive performance, especially with the khttp implementation reaching 31,610 req/s. The performance varies significantly between frameworks (tokio, actix, khttp), demonstrating that the choice of HTTP library matters greatly. If one day some Rust developer does the same socket implementation as we have in uWebSockets, the performance could improve even further.
 
 **dotnet C#**
 This is the platform I recommend for large projects that need performance.
