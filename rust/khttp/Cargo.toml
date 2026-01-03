@@ -1,0 +1,22 @@
+[package]
+name = "khttp-api"
+version = "1.0.0"
+edition = "2024"
+
+[[bin]]
+name = "khttp-api"
+path = "khttp.rs"
+
+[dependencies]
+khttp = "0.2.0"
+rusqlite = { version = "0.31", features = ["bundled"] }
+sha2 = "0.10"
+r2d2 = "0.8"
+r2d2_sqlite = "0.24"
+num_cpus = "1.16"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
