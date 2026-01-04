@@ -71,7 +71,8 @@ This is also a little bit more complex to use than C# or JavaScript. Creating a 
 A good option that creates a single binary.
 
 **PHP**
-The deployment is quite complex and you can spend a lot of time figuring out why it doesn't work. Performance is not good.
+The deployment is quite complex and you can spend a lot of time figuring out why it doesn't work. Performance is not good. Did succed to make it work with FrankenPHP because of SQLite dependancy. In Docker works
+but very poor performances.
 
 **Python**
 Don't use it if you need performance. You can use it in microservices with a front end in another technology. Deployment is also sometimes problematic if you need to mix versions.
