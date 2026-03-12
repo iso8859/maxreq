@@ -225,6 +225,8 @@ impl ApiClient {
         self.create_db().await?;
 
         let semaphore = Arc::new(Semaphore::new(max_concurrency));
+        // Share a single HTTP client across all tasks to avoid recreating connection pools
+        let shared_client = Arc::new(ApiClient::new(self.base_url.clone(), max_concurrency));
         let mut tasks = Vec::new();
         let stopwatch = Instant::now();
 
@@ -232,7 +234,7 @@ impl ApiClient {
         for i in 0..total_requests {
             let sem = semaphore.clone();
             let request_id = if no_db { -1 } else { ((i % 10000) + 1) as i32 };
-            let client = ApiClient::new(self.base_url.clone(), 16);
+            let client = shared_client.clone();
 
             let task = tokio::spawn(async move {
                 let _permit = sem.acquire().await.unwrap();
