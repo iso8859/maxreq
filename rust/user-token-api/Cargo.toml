@@ -23,3 +23,8 @@ r2d2 = "0.8.10"
 r2d2_sqlite = "0.31.0"
 num_cpus = "1.17.0"
 tikv-jemallocator = { version = "0.5", features = ["profiling"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
