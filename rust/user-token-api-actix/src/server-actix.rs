@@ -6,10 +6,14 @@ use actix_cors::Cors;
 use rusqlite::{Result as SqliteResult};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::borrow::Cow;
 use std::time::Duration;
 use tracing::{info, error};
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
+
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 type DbPool = Pool<SqliteConnectionManager>;
 
@@ -28,14 +32,13 @@ struct LoginResponse {
     #[serde(rename = "UserId")]
     user_id: Option<i64>,
     #[serde(rename = "ErrorMessage")]
-    error_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error_message: Option<Cow<'static, str>>,
 }
 
 #[derive(Debug)]
 struct User {
     id: i64,
-    mail: String,
-    hashed_password: String,
 }
 
 #[derive(Clone)]
@@ -47,7 +50,9 @@ impl AppState {
     fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let cpus = num_cpus::get() as u32;
         let manager = SqliteConnectionManager::file("users.db");
-        let pool = Pool::builder().max_size(cpus).build(manager)?;
+        // Actix spawns one worker per CPU; match pool size so no worker ever blocks waiting
+        let pool_size = cpus;
+        let pool = Pool::builder().max_size(pool_size).build(manager)?;
         let conn = pool.get()?;
 
         // Configure SQLite for better performance and concurrency
@@ -75,7 +80,13 @@ impl AppState {
             "CREATE INDEX IF NOT EXISTS idx_user_mail_password ON user(mail, hashed_password)",
             [],
         )?;
-        
+
+        // Run ANALYZE to update query planner statistics
+        let _ = conn.execute("ANALYZE", []);
+
+        // Run PRAGMA optimize for automatic database optimization
+        let _ = conn.pragma_update(None, "optimize", "");
+
         Ok(AppState{
             db: pool,
         })
@@ -84,27 +95,20 @@ impl AppState {
     fn get_user_by_credentials(&self, request: &LoginRequest) -> SqliteResult<Option<User>> {
         // Handle special test case
         if request.user_name == "no_db" {
-            return Ok(Some(User {
-                id: 12345,
-                mail: "no_db".to_string(),
-                hashed_password: "test".to_string(),
-            }));
+            return Ok(Some(User { id: 12345 }));
         }
         
         let conn = self.db.get().unwrap();
         
         // Use prepare_cached for automatic statement caching
+        // Optimized query: only select the id column we need
         let mut stmt = conn.prepare_cached(
-            "SELECT id, mail, hashed_password FROM user WHERE mail = ?1 AND hashed_password = ?2 LIMIT 1"
+            "SELECT id FROM user WHERE mail = ?1 AND hashed_password = ?2 LIMIT 1"
         )?;
 
         // get scalar response
         let user = stmt.query_row([&request.user_name, &request.hashed_password], |row| {
-            Ok(User {
-                id: row.get(0)?,
-                mail: row.get(1)?,
-                hashed_password: row.get(2)?,
-            })
+            Ok(User { id: row.get(0)? })
         });
       
         match user {
@@ -170,14 +174,14 @@ async fn get_user_token(
         Ok(None) => Ok(HttpResponse::Ok().json(LoginResponse {
             success: false,
             user_id: None,
-            error_message: Some("Invalid username or password".to_string()),
+            error_message: Some(Cow::Borrowed("Invalid username or password")),
         })),
         Err(e) => {
             info!("Database error: {}", e);
             Ok(HttpResponse::Ok().json(LoginResponse {
                 success: false,
                 user_id: None,
-                error_message: Some("An error occurred during authentication".to_string()),
+                error_message: Some(Cow::Borrowed("An error occurred during authentication")),
             }))
         }
     }
