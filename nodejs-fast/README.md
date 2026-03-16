@@ -84,15 +84,30 @@ curl http://localhost:8080/nodejshealth
 
 ## Results
 
-I used `wrk` to test the endpoints.
+I used [`rewrk`](https://github.com/lnx-search/rewrk) to test the endpoints. Unlike `wrk`, which uses HTTP/1 pipelining (a feature no major browser has supported for over a decade), `rewrk` sends standard HTTP/1.1 requests, producing numbers closer to real-world performance.
+
+### HTTP/1.1
 
 | Technology           | GET /health       | POST /api/auth/get-user-token |
 |----------------------|------------------:|------------------------------:|
-| NodeJs 24.11 Fast    |        386533 RPS |                    232290 RPS |
-| Rust Actix           |        382089 RPS |    (with errors)   298869 RPS |
-| NodeJs 24.11 Express |         96674 RPS |                     30934 RPS |
-| NodeJs 22.21 Express |         46977 RPS |                     21670 RPS |
+| NodeJs 24.11 Fast    |            TODO   |                        TODO   |
+| Rust Actix           |            TODO   |                        TODO   |
+| NodeJs 24.11 Express |            TODO   |                        TODO   |
+| NodeJs 22.21 Express |            TODO   |                        TODO   |
 
+### HTTP/2
+
+| Technology           | GET /health       | POST /api/auth/get-user-token |
+|----------------------|------------------:|------------------------------:|
+| NodeJs 24.11 Fast    |            TODO   |                        TODO   |
+| Rust Actix           |            TODO   |                        TODO   |
+| NodeJs 24.11 Express |            TODO   |                        TODO   |
+| NodeJs 22.21 Express |            TODO   |                        TODO   |
+
+Install rewrk:
+```bash
+cargo install rewrk
+```
 
 ### Test Machine Specifications
 
@@ -105,63 +120,50 @@ I used `wrk` to test the endpoints.
 ### Node.js:
 
 ```bash
-# GET /nodejshealth
-wrk -t4 -c400 -d30s http://localhost:8080/nodejshealth
-Running 30s test @ http://localhost:8080/nodejshealth
-  4 threads and 400 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.38ms    1.50ms  15.15ms   82.85%
-    Req/Sec    97.16k     6.36k  116.37k    85.42%
-  11599261 requests in 30.01s, 2.21GB read
-Requests/sec: 386533.68
-Transfer/sec:     75.57MB
+# GET /nodejshealth (HTTP/1.1)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/nodejshealth
+
+# GET /nodejshealth (HTTP/2)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/nodejshealth --http2
 
 # Insert 10k users in DB
 curl http://localhost:8080/nodejs/api/auth/create-db
 
-# POST /nodejs/api/auth/get-user-token
-wrk -t4 -c400 -d30s -s post.lua http://localhost:8080/nodejs/api/auth/get-user-token
-Running 30s test @ http://localhost:8080/nodejs/api/auth/get-user-token
-  4 threads and 400 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.94ms    1.76ms  18.30ms   82.93%
-    Req/Sec    58.41k    13.38k  102.68k    77.67%
-  6983530 requests in 30.06s, 1.31GB read
-Requests/sec: 232290.11
-Transfer/sec:     44.75MB
+# POST /nodejs/api/auth/get-user-token (HTTP/1.1)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/nodejs/api/auth/get-user-token \
+  -m POST \
+  -H "Content-Type: application/json" \
+  -b '{"UserName":"user100@example.com","HashedPassword":"b3351ed9be23d5ad99cc73bdc1aed73913503f064534ead302d7485b72b072fe"}'
+
+# POST /nodejs/api/auth/get-user-token (HTTP/2)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/nodejs/api/auth/get-user-token --http2 \
+  -m POST \
+  -H "Content-Type: application/json" \
+  -b '{"UserName":"user100@example.com","HashedPassword":"b3351ed9be23d5ad99cc73bdc1aed73913503f064534ead302d7485b72b072fe"}'
 ```
 
 ### Rust Actix:
 
-WARNING: I don't know why I have so many errors with Rust for POST requests.
-So the result may not be correct. TODO fix it.
-
 ```bash
-# GET /health
-wrk -t4 -c400 -d30s http://localhost:8080/health
-Running 30s test @ http://localhost:8080/health
-  4 threads and 400 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.54ms    2.06ms  62.95ms   90.20%
-    Req/Sec    96.06k     5.27k  108.00k    71.00%
-  11467161 requests in 30.01s, 2.43GB read
-Requests/sec: 382089.32
-Transfer/sec:     83.08MB
+# GET /health (HTTP/1.1)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/health
+
+# GET /health (HTTP/2)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/health --http2
 
 # Insert 10k users in DB
 curl http://localhost:8080/api/auth/create-db
 
-# POST /api/auth/get-user-token
-wrk -t4 -c400 -d30s -s post.lua   http://localhost:8080/api/auth/get-user-token
-Running 30s test @ http://localhost:8080/api/auth/get-user-token
-  4 threads and 400 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     1.68ms    1.74ms  18.86ms   83.11%
-    Req/Sec    75.18k    11.61k  102.68k    66.00%
-  8980448 requests in 30.05s, 3.02GB read
-  Non-2xx or 3xx responses: 8980448
-Requests/sec: 298869.25
-Transfer/sec:    102.89MB
+# POST /api/auth/get-user-token (HTTP/1.1)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/api/auth/get-user-token \
+  -m POST \
+  -H "Content-Type: application/json" \
+  -b '{"UserName":"user1@example.com","HashedPassword":"0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"}'
 
+# POST /api/auth/get-user-token (HTTP/2)
+rewrk -t 4 -c 400 -d 30s -h http://localhost:8080/api/auth/get-user-token --http2 \
+  -m POST \
+  -H "Content-Type: application/json" \
+  -b '{"UserName":"user1@example.com","HashedPassword":"0b14d501a594442a01c6859541bcb3e8164d183d32937b851835442f69d5c94e"}'
 ```
 
