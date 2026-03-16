@@ -20,11 +20,13 @@ I tried to get maximum performance for each implementation, using best practices
 | Java mini Temurin       | 10993  | Java VM is very sensitive. With some VMs I got 100 req/s. pom files are complex              |
 | go                      | 12271  | Easy to build, big exe                                                                       |
 | C# 10.0 controller      | 14465  | The best compromise for code simplicity, maintenance, and performance                        |
-| rust tokio              | 17910  | Easy to build, big exe                                                                       |
+| rust tokio              | 18105  | Easy to build, big exe                                                                       |
 | C# 10.0 minimal API     | 18140  | As simple as Python                                                                          |
 | rust actix              | 23701  | Easy to build, big exe                                                                       |
 | node-fast cluster       | 24364  | Rely on uWebSockets C++ lib                                                                  |
+| rust khttp              | 31610  | Easy to build, big exe                                                                       |
 | C++ uWebSockets         | 34404  | uWebSockets library makes it possible. Without it, very difficult to get good performance    |
+
 
 ## Take Care About the Processor, Operating System, and Docker
 
@@ -43,7 +45,7 @@ Docker is a performance killer, especially with Java.
 Good performance requires both optimized libraries, most of the time written in C, and a fast runtime. Find some platform pros and cons below and a reflection about monolithic architecture.
 
 
-![Performance Comparison Chart Debian](illustration-debian-20251220.png)
+![Performance Comparison Chart Debian](illustration-debian-20260103.png)
 
 **C++ is the fastest**
 No surprise here. I'm a senior C++ developer and wouldn't achieve this performance by myself.
@@ -55,8 +57,7 @@ Node.js is making an impressive comeback thanks to the expertise of [David Grela
 This can be explained by the fact that two C++ libraries are being used directly from the JavaScript code: uWebSockets.js, which is based on the C++ uWebSockets library, and the same goes for SQLite. The JavaScript code simply acts as a relay to the C++ code — and it works remarkably well.
 
 **Rust**  
-It was a surprise to see this poor performance with Rust. If one day some Rust developer
-does the same socket implementation as we have in uWebSockets, the performance will improve.
+Rust shows impressive performance, especially with the khttp implementation reaching 31,610 req/s. The performance varies significantly between frameworks (tokio, actix, khttp), demonstrating that the choice of HTTP library matters greatly. If one day some Rust developer does the same socket implementation as we have in uWebSockets, the performance could improve even further.
 
 **dotnet C#**
 This is the platform I recommend for large projects that need performance.
@@ -70,7 +71,8 @@ This is also a little bit more complex to use than C# or JavaScript. Creating a 
 A good option that creates a single binary.
 
 **PHP**
-The deployment is quite complex and you can spend a lot of time figuring out why it doesn't work. Performance is not good.
+The deployment is quite complex and you can spend a lot of time figuring out why it doesn't work. Performance is not good. Did succed to make it work with FrankenPHP because of SQLite dependancy. In Docker works
+but very poor performances.
 
 **Python**
 Don't use it if you need performance. You can use it in microservices with a front end in another technology. Deployment is also sometimes problematic if you need to mix versions.
@@ -124,6 +126,7 @@ Client and server are on the same machine, so network latency is not taken into 
 # Log
 
 ```
+20260103 - ErwanLegrand - optimise rust db
 20251207 - dgrelaud - nodejs-fast version using C++ library uWebSockets.js and better-sqlite3 putting node.js near Rust performance.
 20251102 - SebDeLille - Proposal to improve rust-actix, gain 5700 req/s
 20251102 - Kuurama - C# class to record to gain 1000 req/s 

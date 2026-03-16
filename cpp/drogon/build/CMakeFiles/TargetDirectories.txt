@@ -1,0 +1,3 @@
+/home/debian/maxreq/cpp/drogon/build/CMakeFiles/drogon-api.dir
+/home/debian/maxreq/cpp/drogon/build/CMakeFiles/edit_cache.dir
+/home/debian/maxreq/cpp/drogon/build/CMakeFiles/rebuild_cache.dir
